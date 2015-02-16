@@ -1,8 +1,8 @@
-package alphaTree.data;
+package main.alphaTree.data;
 
 import java.util.ArrayList;
 
-import alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 
 /**
  * 

@@ -2,12 +2,12 @@ package demo;
 
 import java.util.ArrayList;
 
-import alphaTree.AlphaTreeBuilder;
-import alphaTree.AlphaTreeViewer;
-import alphaTree.data.AlphaTree;
-import alphaTree.descriptor.AlphaTreeNodeDescriptor;
-import alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
-import alphaTree.descriptor.AlphaTreeNodeDescriptorOmega;
+import main.alphaTree.AlphaTreeBuilder;
+import main.alphaTree.AlphaTreeViewer;
+import main.alphaTree.data.AlphaTree;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptorOmega;
 import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
 

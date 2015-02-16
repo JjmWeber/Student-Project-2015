@@ -1,10 +1,10 @@
-package alphaTree;
+package main.alphaTree;
 
 import java.util.ArrayList;
 
-import alphaTree.data.AlphaTree;
-import alphaTree.data.AlphaTreeNode;
-import alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.data.AlphaTree;
+import main.alphaTree.data.AlphaTreeNode;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.ByteImage;

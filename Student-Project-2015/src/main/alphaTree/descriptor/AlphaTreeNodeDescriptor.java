@@ -1,4 +1,4 @@
-package alphaTree.descriptor;
+package main.alphaTree.descriptor;
 
 public abstract class AlphaTreeNodeDescriptor {
 	

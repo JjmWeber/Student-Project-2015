@@ -1,4 +1,4 @@
-package alphaTree.ui;
+package main.alphaTree.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -27,8 +27,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import alphaTree.data.AlphaTree;
-import alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.data.AlphaTree;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 
 import com.sun.media.jai.widget.DisplayJAI;
 

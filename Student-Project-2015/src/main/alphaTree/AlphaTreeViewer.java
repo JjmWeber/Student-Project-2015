@@ -1,7 +1,7 @@
-package alphaTree;
+package main.alphaTree;
 
-import alphaTree.data.AlphaTree;
-import alphaTree.ui.AlphaTreeView;
+import main.alphaTree.data.AlphaTree;
+import main.alphaTree.ui.AlphaTreeView;
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 
