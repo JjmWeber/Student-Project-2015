@@ -285,6 +285,12 @@ public class AlphaTreeBuilder extends Algorithm {
 		}
 	}
 	
+	/**
+	 * This static method launch the building of the Alpha-tree
+	 * @param img
+	 * @param descriptorList
+	 * @return
+	 */
 	public static AlphaTree exec(ByteImage img, ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList)
 	{		
 		return (AlphaTree) new AlphaTreeBuilder().process(img,descriptorList);
