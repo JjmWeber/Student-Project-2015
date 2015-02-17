@@ -46,9 +46,18 @@ public class AlphaTreeBuilder extends Algorithm {
 	 */
 	public AlphaTree alphaTree;
 	
-	
+	/**
+	 * Current number of nodes in the alpha-tree
+	 */
 	private int currentNbNodes;
+	/**
+	 * Current number of active nodes in the alpha-tree
+	 * An active node is a node without parent
+	 */
 	private int nbActiveNodes;
+	/**
+	 * The current value of alpha
+	 */
 	private int currentAlpha;
 	
 	ArrayList<ArrayList<AlphaEdge>> alphaConnections;
