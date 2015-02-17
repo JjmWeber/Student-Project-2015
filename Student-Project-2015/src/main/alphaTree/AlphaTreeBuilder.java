@@ -60,6 +60,9 @@ public class AlphaTreeBuilder extends Algorithm {
 	 */
 	private int currentAlpha;
 	
+	/**
+	 * Alpha-Connections between leaves node
+	 */
 	ArrayList<ArrayList<AlphaEdge>> alphaConnections;
 	
 	public AlphaTreeBuilder() {
