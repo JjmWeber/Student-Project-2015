@@ -111,7 +111,7 @@ public class AlphaTree {
 	
 	public ArrayList<AlphaTreeNode> getLeaves()
 	{
-		return (ArrayList<AlphaTreeNode>) nodes.subList(0, numberOfLeaves+1);
+		return (ArrayList<AlphaTreeNode>) nodes.subList(0, numberOfLeaves-1);
 	}
 	
 	public IntegerImage getSegmentationFromCut(int alpha, double[] descriptorValues)
