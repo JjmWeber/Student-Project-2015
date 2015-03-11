@@ -20,9 +20,8 @@ public class Work {
 				ByteImage image = (ByteImage)ImageLoader.exec("pelican/samples/foot.png");
 				
 				//Prétraitements
-				ManualThresholding threshold = new ManualThresholding();
 				Image image2 = RGBAToGray.exec(image);
-				Image BinaryImage = threshold.exec(image2,150);
+				Image BinaryImage = ManualThresholding.exec(image2,150);
 				ByteImage img = new ByteImage(BinaryImage);
 				
 				
