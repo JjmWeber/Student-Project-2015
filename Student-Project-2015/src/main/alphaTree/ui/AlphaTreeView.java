@@ -7,15 +7,19 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
+import java.io.File;
 import java.util.ArrayList;
 
 import javax.media.jai.RasterFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -36,12 +40,13 @@ import fr.unistra.pelican.BooleanImage;
 import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.Image;
 import fr.unistra.pelican.IntegerImage;
+import fr.unistra.pelican.algorithms.io.ImageSave;
 import fr.unistra.pelican.algorithms.segmentation.labels.DrawFrontiersOnImage;
 import fr.unistra.pelican.algorithms.segmentation.labels.FrontiersFromSegmentation;
 import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToColorByMeanValue;
 import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToRandomColors;
 
-public class AlphaTreeView extends JFrame implements ChangeListener{
+public class AlphaTreeView extends JFrame implements ChangeListener, MouseListener{
 
 	
 	/**
@@ -165,6 +170,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener{
 		frontierOnlyButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=FRONTIERS_ONLY_DISPLAY; makeDisplayedImage();}});
 		frontierOverImageButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=FRONTIERS_OVER_IMAGE_DISPLAY; makeDisplayedImage();}});
 		originalButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=ORIGINAL_DISPLAY; makeDisplayedImage();}});
+		scroll.addMouseListener(this);
 		
 		alphaSlider.addChangeListener(this);
 		for(int i=0;i<descriptorList.size();i++)
@@ -197,7 +203,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener{
 		return img;
 	}
 	
-	private void makeDisplayedImage()
+	private ByteImage makeDisplayedImage()
 	{
 		long t=System.currentTimeMillis();
 		//Compute image
@@ -257,6 +263,8 @@ public class AlphaTreeView extends JFrame implements ChangeListener{
 		scroll.getHorizontalScrollBar().setValue(hValue);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Image maked in "+t+"ms.");
+		
+		return img;
 	}
 
 	@Override
@@ -276,6 +284,52 @@ public class AlphaTreeView extends JFrame implements ChangeListener{
 		t=System.currentTimeMillis()-t;
 		System.out.println("Segmentation computed in "+t+"ms.");
 		makeDisplayedImage();		
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		
+			//Click on right button
+			if(e.getButton() == MouseEvent.BUTTON3)
+			{
+				JFileChooser chooser = new JFileChooser();
+				chooser.setDialogTitle("Picture save");
+
+				int returnVal = chooser.showSaveDialog(getParent());
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					System.out.println("You save the picture here : "
+						+ chooser.getCurrentDirectory() + File.separator
+						+ chooser.getSelectedFile().getName());
+
+					ImageSave.exec(makeDisplayedImage(), chooser.getCurrentDirectory()
+						+ File.separator + chooser.getSelectedFile().getName());
+				}
+			}
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	
