@@ -17,8 +17,7 @@ public class AlphaTreeDemo {
 		//Test NdG
 		//Image lena = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/lennaGray256.png"); 
 		//Test Color
-		//ByteImage lena = (ByteImage)ImageLoader.exec("/home/weber/Documents/git/pelican/samples/lenna512.png");
-		ByteImage lena = (ByteImage)ImageLoader.exec("/home/weber/Documents/Images/ICDAR2003/sample/scene/111-1126_IMG.JPG");
+		ByteImage lena = (ByteImage)ImageLoader.exec("/home/weber/Documents/git/pelican/samples/lenna512.png");
 		
 		ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptors = new ArrayList<Class<? extends AlphaTreeNodeDescriptor>> ();
 		descriptors.add(AlphaTreeNodeDescriptorOmega.class);
