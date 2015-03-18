@@ -28,5 +28,4 @@ public class Work {
 		System.out.println("Alpha-tree creation time : "+t+"ms");
 		AlphaTreeViewer.exec(result);
 	}
-
 }
