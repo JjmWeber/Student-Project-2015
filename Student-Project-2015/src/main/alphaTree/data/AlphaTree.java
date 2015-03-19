@@ -114,6 +114,11 @@ public class AlphaTree {
 		return (ArrayList<AlphaTreeNode>) nodes.subList(0, numberOfLeaves-1);
 	}
 	
+	public ArrayList<AlphaTreeNode> getNodes()
+	{
+		return nodes;
+	}
+	
 	public IntegerImage getSegmentationFromCut(int alpha, double[] descriptorValues)
 	{
 		ArrayList<AlphaTreeNode> cutNodes = getRoot().getCutNodes(alpha, descriptorValues);
