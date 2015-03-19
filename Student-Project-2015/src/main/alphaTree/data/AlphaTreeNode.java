@@ -17,6 +17,10 @@ public class AlphaTreeNode {
 	ArrayList<AlphaTreeNode> children=null;
 	AlphaTreeNodeDescriptor[] descriptors=null;
 	
+	public AlphaTreeNodeDescriptor[] getDescriptors() {
+		return descriptors;
+	}
+
 	public AlphaTreeNode(int id, int alpha, ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList)
 	{
 		this.id=id;
