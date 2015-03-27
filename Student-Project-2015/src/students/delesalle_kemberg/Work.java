@@ -17,7 +17,7 @@ import fr.unistra.pelican.algorithms.segmentation.ManualThresholding;
 public class Work {
 
 	public static void main(String[] args) {
-				ByteImage image = (ByteImage)ImageLoader.exec("pelican/samples/foot.png");
+				ByteImage image = (ByteImage)ImageLoader.exec("../../pelican/samples/foot.png");
 				
 				//Prétraitements
 				Image image2 = RGBAToGray.exec(image);
