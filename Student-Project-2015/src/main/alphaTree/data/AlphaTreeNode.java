@@ -2,6 +2,7 @@ package main.alphaTree.data;
 
 import java.util.ArrayList;
 
+import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 
 /**
@@ -148,7 +149,10 @@ public class AlphaTreeNode {
 		int i=0;
 		while(isOK&&i<descriptorValues.length)
 		{
-			isOK=descriptors[i].check(descriptorValues[i]);
+			if(descriptors[i] instanceof AlphaTreeNodeCutDescriptor)
+			{
+				isOK=((AlphaTreeNodeCutDescriptor)descriptors[i]).check(descriptorValues[i]);
+			}
 			i++;
 		}
 		//isLeaf() is here to deal with special case when even the leaf didn't check the condition (for exemple area = 1)

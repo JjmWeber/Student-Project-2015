@@ -1,6 +1,6 @@
 package main.alphaTree.descriptor;
 
-public class AlphaTreeNodeDescriptorArea extends AlphaTreeNodeDescriptor {
+public class AlphaTreeNodeDescriptorArea extends AlphaTreeNodeFilterDescriptor {
 	
 	private int area;
 	
@@ -20,8 +20,8 @@ public class AlphaTreeNodeDescriptorArea extends AlphaTreeNodeDescriptor {
 	}
 
 	@Override
-	public boolean check(double value) {
-		return value>=area;
+	public boolean check(double minValue, double maxValue) {
+		return minValue<=area&&maxValue>=area;
 	}
 
 	@Override

@@ -1,15 +1,16 @@
 package students.desanlis_pierrel.descriptor;
 
 import demo.AlphaTreeDemo;
+import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
 
 /**
- * Essai creation de descripteur type Omega basé sur la teinte 
+ * Essai creation de descripteur type Omega basï¿½ sur la teinte 
  * @author Desanlis/Pierrel
  *
  */
-public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeDescriptor {
+public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeCutDescriptor {
 	private int min;
 	private int max;
 	private int oTeinte;	

@@ -32,7 +32,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import main.alphaTree.data.AlphaTree;
+import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
 import com.sun.media.jai.widget.DisplayJAI;
 
@@ -66,6 +68,9 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList;
 	private String[] descriptorNames;
 	
+	private int nbCutDescriptors=0;
+	private int nbFilterDescriptors=0;
+	
 	private int displayMode=SEGMENTATION_DISPLAY;
 
 	
@@ -74,7 +79,11 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private JScrollPane scroll;
 	private JPanel rightPanel;
 	private JPanel displayPanel;
+	private JPanel parametersPanel;
 	private JPanel treeCutPanel;
+	private JPanel nodeFilteringPanel;
+	private JPanel alphaPanel;
+	private ArrayList<JPanel> descriptorsPanel;
 	private JRadioButton segmentationButton;
 	private JRadioButton frontierOnlyButton;
 	private JRadioButton frontierOverImageButton;
@@ -84,7 +93,8 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private JLabel alphaText;
 	private JSlider alphaSlider;
 	private JLabel[] descriptorText;
-	private JSlider[] descriptorSlider;
+
+	
 	
 	public AlphaTreeView(AlphaTree alphaTree) throws InstantiationException, IllegalAccessException
 	{
@@ -92,9 +102,18 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		this.segmentedImage=alphaTree.getCCImage();
 		this.descriptorList=alphaTree.getDescriptorList();
 		descriptorNames = new String[descriptorList.size()];
+
 		for(int i=0;i<descriptorList.size();i++)
 		{
 			descriptorNames[i] = ((AlphaTreeNodeDescriptor)descriptorList.get(i).newInstance()).getDescriptorName();
+			if(descriptorList.get(i).getSuperclass() == AlphaTreeNodeCutDescriptor.class)
+			{
+				nbCutDescriptors++;
+			}
+			else
+			{
+				nbFilterDescriptors++;
+			}
 		}
 		
 		
@@ -114,14 +133,16 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		root.add(scroll, BorderLayout.CENTER);
 		
-		rightPanel = new JPanel();
-		rightPanel.setLayout(new BorderLayout());
+		rightPanel = new JPanel(new BorderLayout());
 		root.add(rightPanel, BorderLayout.EAST);
 		
 		displayPanel=new JPanel();
 		displayPanel.setLayout(new GridLayout(5,1,0,0));
 		displayPanel.setBorder(new TitledBorder("Display"));
 		rightPanel.add(displayPanel, BorderLayout.NORTH);
+		
+		parametersPanel=new JPanel(new BorderLayout());
+		rightPanel.add(parametersPanel,BorderLayout.SOUTH);
 		
 		segmentationButton = new JRadioButton("Segmentation",true);
 		meanValueButton = new JRadioButton("Mean Values");
@@ -143,25 +164,44 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		displayButtons.add(originalButton);
 		
 		
+		
+		
 		treeCutPanel = new JPanel();
-		treeCutPanel.setLayout(new GridLayout(2*(descriptorList.size()+1),1,0,0));
+		treeCutPanel.setLayout(new GridLayout(nbCutDescriptors+1,1,0,0));
 		treeCutPanel.setBorder(new TitledBorder("Cut parameters"));
-		rightPanel.add(treeCutPanel, BorderLayout.SOUTH);
+		parametersPanel.add(treeCutPanel,BorderLayout.NORTH);
+		
+		nodeFilteringPanel = new JPanel();
+		nodeFilteringPanel.setLayout(new GridLayout(nbFilterDescriptors,1,0,0));
+		nodeFilteringPanel.setBorder(new TitledBorder("Filtering parameters"));
+		parametersPanel.add(nodeFilteringPanel,BorderLayout.SOUTH);
+		
 		
 		alphaSlider = new JSlider(0,alphaTree.getMaxAlpha(),0);
 		alphaText = new JLabel("Alpha : "+alphaSlider.getValue());
-		treeCutPanel.add(alphaText);
-		treeCutPanel.add(alphaSlider);
+		alphaPanel = new JPanel(new GridLayout(2,1,0,0));
+		alphaPanel.add(alphaText);
+		alphaPanel.add(alphaSlider);
+		treeCutPanel.add(alphaPanel);
 		
 		double[] maxValues = alphaTree.getMaxDescriptorValues();
-		descriptorSlider = new JSlider[descriptorList.size()];
 		descriptorText = new JLabel[descriptorList.size()];
+		descriptorsPanel = new ArrayList<JPanel>();
 		for(int i=0;i<descriptorList.size();i++)
 		{
-			descriptorSlider[i] = new JSlider(0,(int)maxValues[i],(int)maxValues[i]);
-			descriptorText[i] = new JLabel(descriptorNames[i]+" : "+descriptorSlider[i].getValue());
-			treeCutPanel.add(descriptorText[i]);
-			treeCutPanel.add(descriptorSlider[i]);
+			if(descriptorList.get(i).getSuperclass() == AlphaTreeNodeCutDescriptor.class)
+			{
+				@SuppressWarnings("unchecked")
+				CutPanel panel = new CutPanel((Class<? extends AlphaTreeNodeCutDescriptor>) descriptorList.get(i), maxValues[i], descriptorNames[i]);
+				treeCutPanel.add(panel);
+			}
+			else
+			{
+				@SuppressWarnings("unchecked")
+				FilterPanel panel = new FilterPanel((Class<? extends AlphaTreeNodeFilterDescriptor>) descriptorList.get(i), maxValues[i], descriptorNames[i]);
+				nodeFilteringPanel.add(panel);
+				
+			}
 		}
 		
 		//Implement listener
@@ -173,10 +213,11 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		scroll.addMouseListener(this);
 		
 		alphaSlider.addChangeListener(this);
-		for(int i=0;i<descriptorList.size();i++)
+/*		for(JSlider slider : descriptorSlider)
 		{
-			descriptorSlider[i].addChangeListener(this);
+			slider.addChangeListener(this);
 		}
+	*/	
 		
 		makeDisplayedImage();
 		pack();
@@ -269,22 +310,23 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		alphaText.setText("Alpha : "+alphaSlider.getValue());
-		for(int i=0;i<descriptorList.size();i++)
+/*		alphaText.setText("Alpha : "+alphaSlider.getValue());
+		for(int i=0;i<descriptorSlider.size();i++)
 		{
-			descriptorText[i].setText(descriptorNames[i]+" : "+descriptorSlider[i].getValue());
+			if()
+			descriptorText[i].setText(descriptorNames[i]+" : "+descriptorSlider.get(i).getValue());
 		}
 		long t=System.currentTimeMillis();
 		double[] descriptorValues=new double[descriptorList.size()];
 		for(int i=0;i<descriptorValues.length;i++)
 		{
-			descriptorValues[i]=descriptorSlider[i].getValue();
+			descriptorValues[i]=descriptorSlider.get(i).getValue();
 		}
 		segmentedImage = alphaTree.getSegmentationFromCut(alphaSlider.getValue(),descriptorValues);		
 		t=System.currentTimeMillis()-t;
 		System.out.println("Segmentation computed in "+t+"ms.");
 		makeDisplayedImage();		
-	}
+*/	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
@@ -330,6 +372,42 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	private class CutPanel extends JPanel{
+		Class<? extends AlphaTreeNodeCutDescriptor> descriptorClass;
+		JSlider slider;
+		JLabel label;
+		
+		
+		public CutPanel(Class<? extends AlphaTreeNodeCutDescriptor> descriptorClass, double max, String name)
+		{
+			super(new GridLayout(2,1,0,0));
+			this.descriptorClass=descriptorClass;
+			slider = new JSlider(0, (int)max, (int)max);
+			label = new JLabel(name+" : "+slider.getValue());
+			this.add(label);
+			this.add(slider);			
+		}
+		
+	}
+	
+	private class FilterPanel extends JPanel{
+		Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass; 
+		JSlider minSlider;
+		JSlider maxSlider;
+		JLabel label;
+		public FilterPanel(Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass, double max, String name)
+		{
+			super(new GridLayout(3,1,0,0));
+			this.descriptorClass=descriptorClass;
+			minSlider = new JSlider(0, (int)max, 0);
+			maxSlider = new JSlider(0, (int)max, (int)max);
+			label = new JLabel(name+" in ["+minSlider.getValue()+","+maxSlider.getValue()+"]");
+			this.add(label);
+			this.add(minSlider);
+			this.add(maxSlider);
+		}
 	}
 
 	

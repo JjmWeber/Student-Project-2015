@@ -1,6 +1,6 @@
 package main.alphaTree.descriptor;
 
-public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeDescriptor {
+public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeCutDescriptor {
 	
 	private int[] min;
 	private int[] max;
