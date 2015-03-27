@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 import main.alphaTree.data.AlphaTree;
 import main.alphaTree.data.AlphaTreeNode;
+import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.ByteImage;
@@ -34,12 +36,21 @@ public class AlphaTreeBuilder extends Algorithm {
 	 */
 	public ByteImage inputImage;
 	
+	
 	/**
-	 * Descriptor ArrayList
-	 * Class must extends AlphaTreeNodeDescriptor
+	 * Cut Descriptor ArrayList
+	 * Class must extends AlphaTreeNodeCutDescriptor
 	 * Descriptors will be instantiated from class (reflexivity baby !)
 	 */
-	public ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList;
+	public ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptorList;
+	
+	/**
+	 * Filter Descriptor ArrayList
+	 * Class must extends AlphaTreeNodeFilterDescriptor
+	 * Descriptors will be instantiated from class (reflexivity baby !)
+	 */
+	public ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptorList;
+	
 	
 	/**
 	 * Output Alpha Tree
@@ -66,7 +77,7 @@ public class AlphaTreeBuilder extends Algorithm {
 	ArrayList<ArrayList<AlphaEdge>> alphaConnections;
 	
 	public AlphaTreeBuilder() {
-		super.inputs = "inputImage,descriptorList";
+		super.inputs = "inputImage,cutDescriptorList,filterDescriptorList";
 		super.outputs = "alphaTree";
 	}
 	
@@ -99,13 +110,13 @@ public class AlphaTreeBuilder extends Algorithm {
 		t=System.currentTimeMillis()-t;
 		System.out.println("Connected components computed in "+t+"ms.");
 		//Create the Alpha-Tree
-		alphaTree = new AlphaTree(inputImage,connectedComponents, descriptorList);
+		alphaTree = new AlphaTree(inputImage,connectedComponents, cutDescriptorList, filterDescriptorList);
 		//Second, we create leaf nodes and put them in alpha tree
 		currentNbNodes=connectedComponents.maximum()+1;
 		nbActiveNodes=currentNbNodes;
 		for(int i=0;i<currentNbNodes;i++)
 		{
-			alphaTree.addNode(new AlphaTreeNode(i,currentAlpha, descriptorList));
+			alphaTree.addNode(new AlphaTreeNode(i,currentAlpha, cutDescriptorList, filterDescriptorList));
 			
 		}
 		//Third, compute alpha link between adjacent CCs
@@ -291,9 +302,9 @@ public class AlphaTreeBuilder extends Algorithm {
 	 * @param descriptorList
 	 * @return
 	 */
-	public static AlphaTree exec(ByteImage img, ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList)
+	public static AlphaTree exec(ByteImage img, ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptorList, ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptorList)
 	{		
-		return (AlphaTree) new AlphaTreeBuilder().process(img,descriptorList);
+		return (AlphaTree) new AlphaTreeBuilder().process(img,cutDescriptorList, filterDescriptorList);
 	}
 	
 	private class AlphaEdge

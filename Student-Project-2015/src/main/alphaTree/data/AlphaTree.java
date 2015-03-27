@@ -2,7 +2,9 @@ package main.alphaTree.data;
 
 import java.util.ArrayList;
 
+import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import fr.unistra.pelican.Image;
 import fr.unistra.pelican.IntegerImage;
 
@@ -32,9 +34,14 @@ public class AlphaTree {
 	private IntegerImage cCImage;
 	
 	/**
-	 * Tree Node Descriptors List
+	 * Tree Node Cut Descriptors List
 	 */
-	private ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList;
+	private ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptorList;
+	
+	/**
+	 * Tree Node Filter Descriptors List
+	 */
+	private ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptorList;
 	
 	/**
 	 * Number of Leaves
@@ -46,11 +53,12 @@ public class AlphaTree {
 	 */
 	private int maxAlpha=0;
 
-	public AlphaTree(Image originalImage, IntegerImage cCImage, ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList)
+	public AlphaTree(Image originalImage, IntegerImage cCImage, ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptorList, ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptorList)
 	{
 		this.originalImage=originalImage;
 		this.cCImage=cCImage;
-		this.descriptorList=descriptorList;
+		this.cutDescriptorList=cutDescriptorList;
+		this.filterDescriptorList=filterDescriptorList;
 		numberOfLeaves=cCImage.getNumberOfUsedLabels();
 		nodes = new ArrayList<AlphaTreeNode> ();
 	}
@@ -79,12 +87,23 @@ public class AlphaTree {
 		return maxAlpha;
 	}
 	
-	public double[] getMaxDescriptorValues()
+	public double[] getMaxCutDescriptorValues()
 	{
-		double[] maxValues = new double[descriptorList.size()];
-		for(int i=0;i<descriptorList.size();i++)
+		double[] maxValues = new double[cutDescriptorList.size()];
+		for(int i=0;i<cutDescriptorList.size();i++)
 		{
-			maxValues[i]=getRoot().descriptors[i].getValue();
+			maxValues[i]=getRoot().cutDescriptors[i].getValue();
+		}		
+		return maxValues;
+	}
+	
+	//TODO : Reimplement because filtering descriptors can be non croissant
+	public double[] getMaxFilterDescriptorValues()
+	{
+		double[] maxValues = new double[filterDescriptorList.size()];
+		for(int i=0;i<filterDescriptorList.size();i++)
+		{
+			maxValues[i]=getRoot().filterDescriptors[i].getValue();
 		}		
 		return maxValues;
 	}
@@ -94,9 +113,14 @@ public class AlphaTree {
 		return cCImage;		
 	}
 	
-	public ArrayList<Class<? extends AlphaTreeNodeDescriptor>> getDescriptorList()
+	public ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> getCutDescriptorList()
 	{
-		return descriptorList;
+		return cutDescriptorList;
+	}
+	
+	public ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> getFilterDescriptorList()
+	{
+		return filterDescriptorList;
 	}
 	
 	public int getNumberOfLeaves()

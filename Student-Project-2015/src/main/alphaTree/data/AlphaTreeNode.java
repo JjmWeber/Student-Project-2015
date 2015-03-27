@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
 /**
  * 
@@ -16,22 +17,36 @@ public class AlphaTreeNode {
 	int alpha;
 	AlphaTreeNode parent=null;
 	ArrayList<AlphaTreeNode> children=null;
-	AlphaTreeNodeDescriptor[] descriptors=null;
+	AlphaTreeNodeCutDescriptor[] cutDescriptors=null;
+	AlphaTreeNodeFilterDescriptor[] filterDescriptors=null;
 	
-	public AlphaTreeNodeDescriptor[] getDescriptors() {
-		return descriptors;
+	public AlphaTreeNodeCutDescriptor[] getCutDescriptors() {
+		return cutDescriptors;
+	}
+	
+	public AlphaTreeNodeFilterDescriptor[] getFilterDescriptors() {
+		return filterDescriptors;
 	}
 
-	public AlphaTreeNode(int id, int alpha, ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList)
+	public AlphaTreeNode(int id, int alpha, ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptorList, ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptorList)
 	{
 		this.id=id;
 		this.alpha=alpha;
 		children=new ArrayList<AlphaTreeNode>();
-		descriptors=new AlphaTreeNodeDescriptor[descriptorList.size()];
+		cutDescriptors=new AlphaTreeNodeCutDescriptor[cutDescriptorList.size()];
 		try {
-			for(int i=0;i<descriptors.length;i++)
+			for(int i=0;i<cutDescriptors.length;i++)
 			{
-				descriptors[i]=(AlphaTreeNodeDescriptor) descriptorList.get(i).newInstance();
+				cutDescriptors[i]=(AlphaTreeNodeCutDescriptor) cutDescriptorList.get(i).newInstance();
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		filterDescriptors=new AlphaTreeNodeFilterDescriptor[filterDescriptorList.size()];
+		try {
+			for(int i=0;i<filterDescriptors.length;i++)
+			{
+				filterDescriptors[i]=(AlphaTreeNodeFilterDescriptor) filterDescriptorList.get(i).newInstance();
 			}
 		} catch (InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -47,14 +62,23 @@ public class AlphaTreeNode {
 		children.add(child2);
 		child1.parent=this;
 		child2.parent=this;
-		descriptors= new AlphaTreeNodeDescriptor[child1.descriptors.length];
-		for(int i=0;i<descriptors.length;i++)
+		cutDescriptors= new AlphaTreeNodeCutDescriptor[child1.cutDescriptors.length];
+		for(int i=0;i<cutDescriptors.length;i++)
 		{
-			descriptors[i]=(AlphaTreeNodeDescriptor) child1.descriptors[i].clone();
+			cutDescriptors[i]=(AlphaTreeNodeCutDescriptor) child1.cutDescriptors[i].clone();
 		}
-		for(int i=0;i<descriptors.length;i++)
+		for(int i=0;i<cutDescriptors.length;i++)
 		{
-			descriptors[i].mergeWith(child2.descriptors[i]);
+			cutDescriptors[i].mergeWith(child2.cutDescriptors[i]);
+		}
+		filterDescriptors= new AlphaTreeNodeFilterDescriptor[child1.filterDescriptors.length];
+		for(int i=0;i<filterDescriptors.length;i++)
+		{
+			filterDescriptors[i]=(AlphaTreeNodeFilterDescriptor) child1.filterDescriptors[i].clone();
+		}
+		for(int i=0;i<filterDescriptors.length;i++)
+		{
+			filterDescriptors[i].mergeWith(child2.filterDescriptors[i]);
 		}
 	}
 	
@@ -64,9 +88,13 @@ public class AlphaTreeNode {
 		{
 			child.parent=this;
 		}
-		for(int i=0;i<descriptors.length;i++)
+		for(int i=0;i<cutDescriptors.length;i++)
 		{
-			descriptors[i].mergeWith(node.descriptors[i]);
+			cutDescriptors[i].mergeWith(node.cutDescriptors[i]);
+		}
+		for(int i=0;i<filterDescriptors.length;i++)
+		{
+			filterDescriptors[i].mergeWith(node.filterDescriptors[i]);
 		}
 		children.addAll(node.children);
 	}
@@ -75,9 +103,13 @@ public class AlphaTreeNode {
 	{
 		children.add(node);
 		node.parent=this;
-		for(int i=0;i<descriptors.length;i++)
+		for(int i=0;i<cutDescriptors.length;i++)
 		{
-			descriptors[i].mergeWith(node.descriptors[i]);
+			cutDescriptors[i].mergeWith(node.cutDescriptors[i]);
+		}
+		for(int i=0;i<filterDescriptors.length;i++)
+		{
+			filterDescriptors[i].mergeWith(node.filterDescriptors[i]);
 		}
 	}
 
@@ -142,17 +174,14 @@ public class AlphaTreeNode {
 		return leaves;
 	}
 	//TODO : This one seems to be parralelizable ...
-	public ArrayList<AlphaTreeNode> getCutNodes(int cutAlpha, double[] descriptorValues)
+	public ArrayList<AlphaTreeNode> getCutNodes(int cutAlpha, double[] cutDescriptorValues)
 	{
 		ArrayList<AlphaTreeNode> cutNodes=new ArrayList<AlphaTreeNode>();
 		boolean isOK=cutAlpha>=this.alpha;
 		int i=0;
-		while(isOK&&i<descriptorValues.length)
+		while(isOK&&i<cutDescriptorValues.length)
 		{
-			if(descriptors[i] instanceof AlphaTreeNodeCutDescriptor)
-			{
-				isOK=((AlphaTreeNodeCutDescriptor)descriptors[i]).check(descriptorValues[i]);
-			}
+			isOK=((AlphaTreeNodeCutDescriptor)cutDescriptors[i]).check(cutDescriptorValues[i]);
 			i++;
 		}
 		//isLeaf() is here to deal with special case when even the leaf didn't check the condition (for exemple area = 1)
@@ -163,16 +192,20 @@ public class AlphaTreeNode {
 		else
 		{
 			for(AlphaTreeNode child : children)
-				cutNodes.addAll(child.getCutNodes(cutAlpha, descriptorValues));
+				cutNodes.addAll(child.getCutNodes(cutAlpha, cutDescriptorValues));
 		}
 		return cutNodes;
 	}
 	
 	public void addPixel(int[] values)
 	{
-		for(int i=0;i<descriptors.length;i++)
+		for(int i=0;i<cutDescriptors.length;i++)
 		{
-			descriptors[i].addPixel(values);
+			cutDescriptors[i].addPixel(values);
+		}
+		for(int i=0;i<filterDescriptors.length;i++)
+		{
+			filterDescriptors[i].addPixel(values);
 		}
 	}
 

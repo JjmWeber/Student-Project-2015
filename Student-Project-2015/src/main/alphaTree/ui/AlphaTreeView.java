@@ -65,8 +65,11 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private AlphaTree alphaTree;
 	
 	private IntegerImage segmentedImage;
-	private ArrayList<Class<? extends AlphaTreeNodeDescriptor>> descriptorList;
-	private String[] descriptorNames;
+	private ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptorList;
+	private ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptorList;
+	
+	private String[] cutDescriptorNames;
+	private String[] filterDescriptorNames;
 	
 	private int nbCutDescriptors=0;
 	private int nbFilterDescriptors=0;
@@ -100,20 +103,22 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	{
 		this.alphaTree=alphaTree;
 		this.segmentedImage=alphaTree.getCCImage();
-		this.descriptorList=alphaTree.getDescriptorList();
-		descriptorNames = new String[descriptorList.size()];
+		this.cutDescriptorList=alphaTree.getCutDescriptorList();
+		this.filterDescriptorList=alphaTree.getFilterDescriptorList();
+		
+		nbCutDescriptors = cutDescriptorList.size();
+		nbFilterDescriptors = filterDescriptorList.size();
+		
+		cutDescriptorNames = new String[nbCutDescriptors];
+		filterDescriptorNames = new String[nbFilterDescriptors];
 
-		for(int i=0;i<descriptorList.size();i++)
+		for(int i=0;i<nbCutDescriptors;i++)
 		{
-			descriptorNames[i] = ((AlphaTreeNodeDescriptor)descriptorList.get(i).newInstance()).getDescriptorName();
-			if(descriptorList.get(i).getSuperclass() == AlphaTreeNodeCutDescriptor.class)
-			{
-				nbCutDescriptors++;
-			}
-			else
-			{
-				nbFilterDescriptors++;
-			}
+			cutDescriptorNames[i] = ((AlphaTreeNodeCutDescriptor)cutDescriptorList.get(i).newInstance()).getDescriptorName();
+		}
+		for(int i=0;i<nbFilterDescriptors;i++)
+		{
+			filterDescriptorNames[i] = ((AlphaTreeNodeFilterDescriptor)filterDescriptorList.get(i).newInstance()).getDescriptorName();
 		}
 		
 		
@@ -184,25 +189,22 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		alphaPanel.add(alphaSlider);
 		treeCutPanel.add(alphaPanel);
 		
-		double[] maxValues = alphaTree.getMaxDescriptorValues();
-		descriptorText = new JLabel[descriptorList.size()];
-		descriptorsPanel = new ArrayList<JPanel>();
-		for(int i=0;i<descriptorList.size();i++)
+		double[] cutMaxValues = alphaTree.getMaxCutDescriptorValues();
+		for(int i=0;i<cutDescriptorList.size();i++)
 		{
-			if(descriptorList.get(i).getSuperclass() == AlphaTreeNodeCutDescriptor.class)
-			{
-				@SuppressWarnings("unchecked")
-				CutPanel panel = new CutPanel((Class<? extends AlphaTreeNodeCutDescriptor>) descriptorList.get(i), maxValues[i], descriptorNames[i]);
-				treeCutPanel.add(panel);
-			}
-			else
-			{
-				@SuppressWarnings("unchecked")
-				FilterPanel panel = new FilterPanel((Class<? extends AlphaTreeNodeFilterDescriptor>) descriptorList.get(i), maxValues[i], descriptorNames[i]);
-				nodeFilteringPanel.add(panel);
-				
-			}
+			@SuppressWarnings("unchecked")
+			CutPanel panel = new CutPanel((Class<? extends AlphaTreeNodeCutDescriptor>) cutDescriptorList.get(i), cutMaxValues[i], cutDescriptorNames[i]);
+			treeCutPanel.add(panel);
 		}
+		double[] filterMaxValues = alphaTree.getMaxFilterDescriptorValues();
+		for(int i=0;i<filterDescriptorList.size();i++)
+		{
+			@SuppressWarnings("unchecked")
+			FilterPanel panel = new FilterPanel((Class<? extends AlphaTreeNodeFilterDescriptor>) filterDescriptorList.get(i), filterMaxValues[i], filterDescriptorNames[i]);
+			nodeFilteringPanel.add(panel);
+		}
+		
+
 		
 		//Implement listener
 		segmentationButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=SEGMENTATION_DISPLAY; makeDisplayedImage();}});
