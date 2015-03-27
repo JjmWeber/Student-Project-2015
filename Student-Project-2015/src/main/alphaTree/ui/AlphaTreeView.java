@@ -202,7 +202,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		filterPanels = new FilterPanel[nbFilterDescriptors];
 		for(int i=0;i<nbFilterDescriptors;i++)
 		{
-			filterPanels[i] = new FilterPanel((Class<? extends AlphaTreeNodeFilterDescriptor>) filterDescriptorList.get(i), filterMaxValues[i], filterDescriptorNames[i]);
+			filterPanels[i] = new FilterPanel((Class<? extends AlphaTreeNodeFilterDescriptor>) filterDescriptorList.get(i), filterMaxValues[i], filterDescriptorNames[i],this);
 			nodeFilteringPanel.add(filterPanels[i]);
 		}
 		
@@ -318,10 +318,19 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			cutPanels[i].updateDisplay();
 			cutDescriptorValues[i]=cutPanels[i].slider.getValue();
 		}
+		double[] minFilterDescriptorValues=new double[nbFilterDescriptors];
+		double[] maxFilterDescriptorValues=new double[nbFilterDescriptors];
+		for(int i=0;i<nbFilterDescriptors;i++)
+		{
+			filterPanels[i].updateDisplay();
+			minFilterDescriptorValues[i]=filterPanels[i].minSlider.getValue();
+			maxFilterDescriptorValues[i]=filterPanels[i].maxSlider.getValue();
+		}
 		long t=System.currentTimeMillis();
-		segmentedImage = alphaTree.getSegmentationFromCut(alphaSlider.getValue(),cutDescriptorValues);		
+		segmentedImage = alphaTree.getSegmentationFromCutAndFiltering(alphaSlider.getValue(),cutDescriptorValues, minFilterDescriptorValues, maxFilterDescriptorValues);		
 		t=System.currentTimeMillis()-t;
 		System.out.println("Segmentation computed in "+t+"ms.");
+		
 		makeDisplayedImage();		
 	}
 
@@ -404,7 +413,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		JLabel label;
 		String name;
 		
-		public FilterPanel(Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass, double max, String name)
+		public FilterPanel(Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass, double max, String name, AlphaTreeView parent)
 		{
 			super(new GridLayout(3,1,0,0));
 			this.descriptorClass=descriptorClass;
@@ -415,6 +424,13 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			this.add(label);
 			this.add(minSlider);
 			this.add(maxSlider);
+			minSlider.addChangeListener(parent);
+			maxSlider.addChangeListener(parent);
+		}
+		
+		public void updateDisplay()
+		{
+			label.setText(name+" in ["+minSlider.getValue()+","+maxSlider.getValue()+"]");
 		}
 	}
 

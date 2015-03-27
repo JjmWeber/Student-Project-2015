@@ -1,6 +1,7 @@
 package main.alphaTree.data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
@@ -143,16 +144,30 @@ public class AlphaTree {
 		return nodes;
 	}
 	
-	public IntegerImage getSegmentationFromCut(int alpha, double[] descriptorValues)
+	public IntegerImage getSegmentationFromCutAndFiltering(int alpha, double[] cutDescriptorValues, double[] minFilteringValues, double[] maxFilteringValues)
 	{
-		ArrayList<AlphaTreeNode> cutNodes = getRoot().getCutNodes(alpha, descriptorValues);
+		ArrayList<AlphaTreeNode> cutNodes = getRoot().getCutNodes(alpha, cutDescriptorValues);
 		int[] lookUpTable=new int[numberOfLeaves];
+		Arrays.fill(lookUpTable, -1);
 		for(AlphaTreeNode cutNode : cutNodes)
-		{
-			ArrayList<AlphaTreeNode> leaves = cutNode.getLeaves();
-			for(AlphaTreeNode leave : leaves)
+		{			
+			boolean selected=true;
+			AlphaTreeNodeFilterDescriptor[] descriptors = cutNode.getFilterDescriptors();
+			for(int i=0;i<descriptors.length;i++)
 			{
-				lookUpTable[leave.id]=cutNode.id;
+				if(descriptors[i].getValue()<minFilteringValues[i] || descriptors[i].getValue()>maxFilteringValues[i])
+				{
+					selected=false;
+					break;
+				}
+			}
+			if(selected)
+			{
+				ArrayList<AlphaTreeNode> leaves = cutNode.getLeaves();
+				for(AlphaTreeNode leave : leaves)
+				{
+					lookUpTable[leave.id]=cutNode.id;
+				}
 			}
 		}
 		IntegerImage segmentationFromCut = cCImage.copyImage(false);
