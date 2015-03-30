@@ -5,6 +5,9 @@ import fr.unistra.pelican.util.PointVideo;
 public class AlphaTreeNodeDescriptorHeightWidthRatio extends
 		AlphaTreeNodeFilterDescriptor {
 	
+	private static double min=Double.POSITIVE_INFINITY;
+	private static double max=Double.NEGATIVE_INFINITY;
+	
 	private int minX = Integer.MAX_VALUE;
 	private int maxX = Integer.MIN_VALUE;
 	private int minY = Integer.MAX_VALUE;
@@ -33,7 +36,12 @@ public class AlphaTreeNodeDescriptorHeightWidthRatio extends
 		if(maxY<coord.y)
 		{
 			maxY=coord.y;
-		}		
+		}
+		double ratio=getValue();
+		if(ratio<min)
+			min=ratio;
+		if(ratio>max)
+			max=ratio;
 	}
 
 	@Override
@@ -43,6 +51,11 @@ public class AlphaTreeNodeDescriptorHeightWidthRatio extends
 		maxX = maxX>desc.maxX?maxX:desc.maxX;
 		minY = minY<desc.minY?minY:desc.minY;
 		maxY = maxY>desc.maxY?maxY:desc.maxY;
+		double ratio=getValue();
+		if(ratio<min)
+			min=ratio;
+		if(ratio>max)
+			max=ratio;
 	}
 
 	@Override
@@ -63,6 +76,21 @@ public class AlphaTreeNodeDescriptorHeightWidthRatio extends
 		clone.minY=minY;
 		clone.maxY=maxY;
 		return clone;
+	}
+	
+	@Override
+	public int getType() {
+		return AlphaTreeNodeDescriptor.TYPE_DOUBLE;
+	}
+	
+	@Override
+	public double getMin() {
+		return min;
+	}
+
+	@Override
+	public double getMax() {
+		return max;
 	}
 
 }

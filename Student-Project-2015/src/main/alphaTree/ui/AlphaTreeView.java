@@ -26,13 +26,17 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import main.alphaTree.data.AlphaTree;
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import main.alphaTree.util.LabelsToColorByMeanValue;
 import main.alphaTree.util.LabelsToRandomColors;
@@ -94,7 +98,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private JRadioButton originalButton;
 	private ButtonGroup displayButtons;
 	private JLabel alphaText;
-	private JSlider alphaSlider;
+	private JSpinner alphaSpinner;
 	private CutPanel[] cutPanels;
 	private FilterPanel[] filterPanels;
 	
@@ -185,11 +189,11 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		parametersPanel.add(nodeFilteringPanel,BorderLayout.SOUTH);
 		
 		
-		alphaSlider = new JSlider(0,alphaTree.getMaxAlpha(),0);
-		alphaText = new JLabel("Alpha : "+alphaSlider.getValue());
+		alphaSpinner = new JSpinner(new SpinnerNumberModel(0,0,alphaTree.getMaxAlpha(),1));
+		alphaText = new JLabel("Alpha in [0,"+alphaTree.getMaxAlpha()+"]");
 		alphaPanel = new JPanel(new GridLayout(2,1,0,0));
 		alphaPanel.add(alphaText);
-		alphaPanel.add(alphaSlider);
+		alphaPanel.add(alphaSpinner);
 		treeCutPanel.add(alphaPanel);
 		
 		double[] cutMaxValues = alphaTree.getMaxCutDescriptorValues();
@@ -217,7 +221,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		originalButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=ORIGINAL_DISPLAY; makeDisplayedImage();}});
 		scroll.addMouseListener(this);
 		
-		alphaSlider.addChangeListener(this);
+		alphaSpinner.addChangeListener(this);
 
 	
 		
@@ -312,23 +316,25 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		alphaText.setText("Alpha : "+alphaSlider.getValue());
+		//alphaText.setText("Alpha : "+alphaSpinner.getValue());
 		double[] cutDescriptorValues=new double[nbCutDescriptors];
 		for(int i=0;i<nbCutDescriptors;i++)
 		{
-			cutPanels[i].updateDisplay();
-			cutDescriptorValues[i]=cutPanels[i].slider.getValue();
+			//cutPanels[i].updateDisplay();
+			cutDescriptorValues[i]=(double)cutPanels[i].spinner.getValue();
+			
 		}
 		double[] minFilterDescriptorValues=new double[nbFilterDescriptors];
 		double[] maxFilterDescriptorValues=new double[nbFilterDescriptors];
 		for(int i=0;i<nbFilterDescriptors;i++)
 		{
-			filterPanels[i].updateDisplay();
-			minFilterDescriptorValues[i]=filterPanels[i].minSlider.getValue();
-			maxFilterDescriptorValues[i]=filterPanels[i].maxSlider.getValue();
+			//filterPanels[i].updateDisplay();
+			minFilterDescriptorValues[i]=(double)filterPanels[i].minSpinner.getValue();
+			maxFilterDescriptorValues[i]=(double)filterPanels[i].maxSpinner.getValue();
+				
 		}
 		long t=System.currentTimeMillis();
-		segmentedImage = alphaTree.getSegmentationFromCutAndFiltering(alphaSlider.getValue(),cutDescriptorValues, minFilterDescriptorValues, maxFilterDescriptorValues);		
+		segmentedImage = alphaTree.getSegmentationFromCutAndFiltering((int)alphaSpinner.getModel().getValue(),cutDescriptorValues, minFilterDescriptorValues, maxFilterDescriptorValues);		
 		t=System.currentTimeMillis()-t;
 		System.out.println("Segmentation computed in "+t+"ms.");
 		
@@ -383,9 +389,10 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	
 	private class CutPanel extends JPanel{
 		Class<? extends AlphaTreeNodeCutDescriptor> descriptorClass;
-		JSlider slider;
+		JSpinner spinner;
 		JLabel label;
 		String name;
+		int type;
 		
 		
 		public CutPanel(Class<? extends AlphaTreeNodeCutDescriptor> descriptorClass, double max, String name, AlphaTreeView parent)
@@ -393,45 +400,85 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			super(new GridLayout(2,1,0,0));
 			this.descriptorClass=descriptorClass;
 			this.name=name;
-			slider = new JSlider(0, (int)max, (int)max);
-			label = new JLabel(name+" : "+slider.getValue());
+			try {
+				AlphaTreeNodeCutDescriptor desc=descriptorClass.newInstance();
+				this.type = desc.getType();
+				if(type==AlphaTreeNodeDescriptor.TYPE_INT)
+				{
+					spinner = new JSpinner(new SpinnerNumberModel(desc.getMax(), desc.getMin(), desc.getMax(),1));
+				}
+				else
+				{
+					spinner = new JSpinner(new SpinnerNumberModel(desc.getMax(), desc.getMin(), desc.getMax(),0.1));
+				}
+				label = new JLabel(name+" in ["+desc.getMin()+","+desc.getMax()+"]");
+			} catch (InstantiationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			
 			this.add(label);
-			this.add(slider);
-			slider.addChangeListener(parent);
+			this.add(spinner);
+			spinner.addChangeListener(parent);
 		}
 		
 		public void updateDisplay()
 		{
-			label.setText(name+" : "+slider.getValue());
+			label.setText(name+" : "+spinner.getValue());
 		}
 		
 	}
 	
 	private class FilterPanel extends JPanel{
 		Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass; 
-		JSlider minSlider;
-		JSlider maxSlider;
+		JSpinner minSpinner;
+		JSpinner maxSpinner;
 		JLabel label;
 		String name;
+		int type;
 		
 		public FilterPanel(Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass, double max, String name, AlphaTreeView parent)
 		{
 			super(new GridLayout(3,1,0,0));
 			this.descriptorClass=descriptorClass;
 			this.name=name;
-			minSlider = new JSlider(0, (int)max, 0);
-			maxSlider = new JSlider(0, (int)max, (int)max);
-			label = new JLabel(name+" in ["+minSlider.getValue()+","+maxSlider.getValue()+"]");
+			try {
+				AlphaTreeNodeFilterDescriptor desc=descriptorClass.newInstance();
+				this.type = desc.getType();
+				if(type==AlphaTreeNodeDescriptor.TYPE_INT)
+				{
+					minSpinner = new JSpinner(new SpinnerNumberModel(desc.getMin(),desc.getMin(),desc.getMax(),1));
+					maxSpinner = new JSpinner(new SpinnerNumberModel(desc.getMax(),desc.getMin(),desc.getMax(),1));
+				}
+				else
+				{
+					minSpinner = new JSpinner(new SpinnerNumberModel(desc.getMin(),desc.getMin(),desc.getMax(),0.1));
+					maxSpinner = new JSpinner(new SpinnerNumberModel(desc.getMax(),desc.getMin(),desc.getMax(),0.1));
+				}
+				label = new JLabel(name+" in ["+desc.getMin()+","+desc.getMax()+"]");
+				
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 			this.add(label);
-			this.add(minSlider);
-			this.add(maxSlider);
-			minSlider.addChangeListener(parent);
-			maxSlider.addChangeListener(parent);
+			this.add(minSpinner);
+			this.add(maxSpinner);
+			minSpinner.addChangeListener(parent);
+			maxSpinner.addChangeListener(parent);
 		}
 		
 		public void updateDisplay()
 		{
-			label.setText(name+" in ["+minSlider.getValue()+","+maxSlider.getValue()+"]");
+			label.setText(name+" in ["+minSpinner.getValue()+","+maxSpinner.getValue()+"]");
 		}
 	}
 

@@ -4,6 +4,9 @@ import fr.unistra.pelican.util.PointVideo;
 
 public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeCutDescriptor {
 	
+	private static double omegaMin=Double.POSITIVE_INFINITY;
+	private static double omegaMax=Double.NEGATIVE_INFINITY;
+	
 	private int[] min;
 	private int[] max;
 	private int omega;
@@ -32,6 +35,10 @@ public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeCutDescriptor {
 			if(max[i]-min[i]>omega)
 				omega=max[i]-min[i];
 		}
+		if(omega<omegaMin)
+			omegaMin=omega;
+		if(omega>omegaMax)
+			omegaMax=omega;
 	}
 
 	@Override
@@ -46,7 +53,10 @@ public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeCutDescriptor {
 			if(max[i]-min[i]>omega)
 				omega=max[i]-min[i];
 		}
-		
+		if(omega<omegaMin)
+			omegaMin=omega;
+		if(omega>omegaMax)
+			omegaMax=omega;
 	}
 
 	@Override
@@ -74,6 +84,21 @@ public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeCutDescriptor {
 		}
 		clone.omega=omega;
 		return clone;
+	}
+	
+	@Override
+	public int getType() {
+		return AlphaTreeNodeDescriptor.TYPE_INT;
+	}
+	
+	@Override
+	public double getMin() {
+		return omegaMin;
+	}
+
+	@Override
+	public double getMax() {
+		return omegaMax;
 	}
 
 }
