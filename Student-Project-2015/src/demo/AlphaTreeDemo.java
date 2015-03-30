@@ -27,7 +27,7 @@ public class AlphaTreeDemo {
 		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
 		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();
 		filterDescriptors.add(AlphaTreeNodeDescriptorArea.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 		
 		long t = System.currentTimeMillis();
 		AlphaTree result = AlphaTreeBuilder.exec(test,cutDescriptors, filterDescriptors);

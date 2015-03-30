@@ -60,7 +60,7 @@ public class AlphaTreeNodeDescriptorHeightWidthRatio extends
 
 	@Override
 	public double getValue() {
-		return ((double) (maxX-minX)/ (double)(maxY-minY));
+		return ((double) (maxX-minX+1)/ (double)(maxY-minY+1));
 	}
 
 	@Override
