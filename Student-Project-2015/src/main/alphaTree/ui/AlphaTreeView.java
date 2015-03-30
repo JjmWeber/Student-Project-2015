@@ -33,8 +33,11 @@ import javax.swing.event.ChangeListener;
 
 import main.alphaTree.data.AlphaTree;
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
+import main.alphaTree.util.LabelsToColorByMeanValue;
+import main.alphaTree.util.LabelsToRandomColors;
+import main.alphaTree.util.FrontiersFromSegmentation;
+import main.alphaTree.util.DrawFrontiersOnImage;
 
 import com.sun.media.jai.widget.DisplayJAI;
 
@@ -43,10 +46,8 @@ import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.Image;
 import fr.unistra.pelican.IntegerImage;
 import fr.unistra.pelican.algorithms.io.ImageSave;
-import fr.unistra.pelican.algorithms.segmentation.labels.DrawFrontiersOnImage;
-import fr.unistra.pelican.algorithms.segmentation.labels.FrontiersFromSegmentation;
-import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToColorByMeanValue;
-import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToRandomColors;
+
+
 
 public class AlphaTreeView extends JFrame implements ChangeListener, MouseListener{
 

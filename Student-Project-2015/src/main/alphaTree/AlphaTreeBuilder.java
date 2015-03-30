@@ -106,7 +106,7 @@ public class AlphaTreeBuilder extends Algorithm {
 		//First, we compute the CC
 		IntegerImage connectedComponents;
 		long t=System.currentTimeMillis();
-		connectedComponents = ColorFlatZones.exec(inputImage, Neighbourhood4D.get8Neighboorhood());		
+		connectedComponents = ColorFlatZones.exec(inputImage, Neighbourhood4D.get8Neighboorhood());
 		t=System.currentTimeMillis()-t;
 		System.out.println("Connected components computed in "+t+"ms.");
 		//Create the Alpha-Tree
