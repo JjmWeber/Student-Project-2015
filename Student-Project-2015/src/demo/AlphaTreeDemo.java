@@ -8,6 +8,7 @@ import main.alphaTree.data.AlphaTree;
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptorHeightWidthRatio;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorOmega;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import fr.unistra.pelican.ByteImage;
@@ -26,6 +27,7 @@ public class AlphaTreeDemo {
 		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
 		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();
 		filterDescriptors.add(AlphaTreeNodeDescriptorArea.class);
+		//filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 		
 		long t = System.currentTimeMillis();
 		AlphaTree result = AlphaTreeBuilder.exec(test,cutDescriptors, filterDescriptors);

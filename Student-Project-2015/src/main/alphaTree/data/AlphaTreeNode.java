@@ -2,6 +2,7 @@ package main.alphaTree.data;
 
 import java.util.ArrayList;
 
+import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
@@ -197,15 +198,15 @@ public class AlphaTreeNode {
 		return cutNodes;
 	}
 	
-	public void addPixel(int[] values)
+	public void addPixel(int[] pixelValues, PointVideo coord)
 	{
 		for(int i=0;i<cutDescriptors.length;i++)
 		{
-			cutDescriptors[i].addPixel(values);
+			cutDescriptors[i].addPixel(pixelValues, coord);
 		}
 		for(int i=0;i<filterDescriptors.length;i++)
 		{
-			filterDescriptors[i].addPixel(values);
+			filterDescriptors[i].addPixel(pixelValues, coord);
 		}
 	}
 

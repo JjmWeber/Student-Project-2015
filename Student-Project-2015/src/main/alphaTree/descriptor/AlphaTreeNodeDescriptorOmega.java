@@ -1,5 +1,7 @@
 package main.alphaTree.descriptor;
 
+import fr.unistra.pelican.util.PointVideo;
+
 public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeCutDescriptor {
 	
 	private int[] min;
@@ -20,7 +22,7 @@ public class AlphaTreeNodeDescriptorOmega extends AlphaTreeNodeCutDescriptor {
 	}
 	
 	@Override
-	public void addPixel(int[] values) {
+	public void addPixel(int[] values, PointVideo coord) {
 		for(int i=0;i<3;i++)
 		{
 			if(min[i]>values[i])

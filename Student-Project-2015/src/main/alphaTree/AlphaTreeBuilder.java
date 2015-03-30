@@ -15,6 +15,7 @@ import fr.unistra.pelican.IntegerImage;
 import fr.unistra.pelican.PelicanException;
 import fr.unistra.pelican.algorithms.segmentation.flatzones.ColorFlatZones;
 import fr.unistra.pelican.util.Point4D;
+import fr.unistra.pelican.util.PointVideo;
 import fr.unistra.pelican.util.neighbourhood.Neighbourhood4D;
 
 /**
@@ -239,7 +240,7 @@ public class AlphaTreeBuilder extends Algorithm {
 				AlphaTreeNode node1=alphaTree.getNode(cC.getPixelInt(index));
 				int[] currentPixelValues = inputImage.getVectorPixelByte(coloredIndex);
 				//For node's descriptor's initialization
-				node1.addPixel(currentPixelValues);
+				node1.addPixel(currentPixelValues, new PointVideo(x,y,0));
 				for(Point4D q : semiNeighbourhood)
 				{
 					if(x+q.x >= 0 && x+q.x < xDim && y+q.y >= 0 && y+q.y < yDim)

@@ -1,5 +1,7 @@
 package main.alphaTree.descriptor;
 
+import fr.unistra.pelican.util.PointVideo;
+
 public class AlphaTreeNodeDescriptorArea extends AlphaTreeNodeFilterDescriptor {
 	
 	private int area;
@@ -10,7 +12,7 @@ public class AlphaTreeNodeDescriptorArea extends AlphaTreeNodeFilterDescriptor {
 	}
 
 	@Override
-	public void addPixel(int[] values) {
+	public void addPixel(int[] values, PointVideo coord) {
 		area++;
 	}
 
