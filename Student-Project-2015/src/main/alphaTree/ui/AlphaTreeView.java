@@ -80,6 +80,8 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private int nbFilterDescriptors=0;
 	
 	private int displayMode=SEGMENTATION_DISPLAY;
+	
+	private int currentFrame=0;
 
 	
 	// UI Variable
@@ -91,6 +93,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private JPanel treeCutPanel;
 	private JPanel nodeFilteringPanel;
 	private JPanel alphaPanel;
+	private JPanel videoFrameSelector;
 	private JRadioButton segmentationButton;
 	private JRadioButton frontierOnlyButton;
 	private JRadioButton frontierOverImageButton;
@@ -101,12 +104,14 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private JSpinner alphaSpinner;
 	private CutPanel[] cutPanels;
 	private FilterPanel[] filterPanels;
+	private JSlider frameSlider;
+	private JLabel frameLabel;
 	
 
 
 	
 	
-	public AlphaTreeView(AlphaTree alphaTree) throws InstantiationException, IllegalAccessException
+	public AlphaTreeView(final AlphaTree alphaTree) throws InstantiationException, IllegalAccessException
 	{
 		this.alphaTree=alphaTree;
 		this.segmentedImage=alphaTree.getCCImage();
@@ -147,6 +152,16 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		
 		rightPanel = new JPanel(new BorderLayout());
 		root.add(rightPanel, BorderLayout.EAST);
+		
+		if(this.alphaTree.isVideo())
+		{
+			videoFrameSelector = new JPanel(new BorderLayout());
+			frameSlider = new JSlider(0,alphaTree.getCCImage().tdim-1,0);
+			frameLabel = new JLabel("Frame "+0+"/"+(alphaTree.getCCImage().tdim-1));
+			videoFrameSelector.add(frameLabel,BorderLayout.WEST);
+			videoFrameSelector.add(frameSlider,BorderLayout.CENTER);
+			root.add(videoFrameSelector,BorderLayout.SOUTH);
+		}
 		
 		displayPanel=new JPanel();
 		displayPanel.setLayout(new GridLayout(5,1,0,0));
@@ -196,18 +211,16 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		alphaPanel.add(alphaSpinner);
 		treeCutPanel.add(alphaPanel);
 		
-		double[] cutMaxValues = alphaTree.getMaxCutDescriptorValues();
 		cutPanels = new CutPanel[nbCutDescriptors];
 		for(int i=0;i<nbCutDescriptors;i++)
 		{
-			cutPanels[i] = new CutPanel((Class<? extends AlphaTreeNodeCutDescriptor>) cutDescriptorList.get(i), cutMaxValues[i], cutDescriptorNames[i],this);
+			cutPanels[i] = new CutPanel((Class<? extends AlphaTreeNodeCutDescriptor>) cutDescriptorList.get(i), cutDescriptorNames[i],this);
 			treeCutPanel.add(cutPanels[i]);
 		}
-		double[] filterMaxValues = alphaTree.getMaxFilterDescriptorValues();
 		filterPanels = new FilterPanel[nbFilterDescriptors];
 		for(int i=0;i<nbFilterDescriptors;i++)
 		{
-			filterPanels[i] = new FilterPanel((Class<? extends AlphaTreeNodeFilterDescriptor>) filterDescriptorList.get(i), filterMaxValues[i], filterDescriptorNames[i],this);
+			filterPanels[i] = new FilterPanel((Class<? extends AlphaTreeNodeFilterDescriptor>) filterDescriptorList.get(i), filterDescriptorNames[i],this);
 			nodeFilteringPanel.add(filterPanels[i]);
 		}
 		
@@ -219,6 +232,10 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		frontierOnlyButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=FRONTIERS_ONLY_DISPLAY; makeDisplayedImage();}});
 		frontierOverImageButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=FRONTIERS_OVER_IMAGE_DISPLAY; makeDisplayedImage();}});
 		originalButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=ORIGINAL_DISPLAY; makeDisplayedImage();}});
+		if(alphaTree.isVideo())
+		{
+			frameSlider.addChangeListener(new ChangeListener() {@Override public void stateChanged(ChangeEvent e) {currentFrame=frameSlider.getValue(); frameLabel.setText("Frame "+frameSlider.getValue()+"/"+(alphaTree.getCCImage().tdim-1)); makeDisplayedImage();}});
+		}
 		scroll.addMouseListener(this);
 		
 		alphaSpinner.addChangeListener(this);
@@ -257,9 +274,12 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		int xDim = alphaTree.getOriginalImage().getXDim();
 		int yDim = alphaTree.getOriginalImage().getYDim();
 		int bDim = 3;
+		Image tmp;
 		ByteImage img=null;
-		switch(displayMode)
+		if(!alphaTree.isVideo())
 		{
+			switch(displayMode)
+			{
 			case SEGMENTATION_DISPLAY : img=(ByteImage) LabelsToRandomColors.exec(segmentedImage);
 										break;
 			case MEAN_VALUES_DISPLAY : 	img=LabelsToColorByMeanValue.exec(segmentedImage, getOriginalImageInColor());
@@ -278,9 +298,35 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			case FRONTIERS_OVER_IMAGE_DISPLAY : BooleanImage frontierS=FrontiersFromSegmentation.exec(segmentedImage);
 												img=(ByteImage) DrawFrontiersOnImage.exec(getOriginalImageInColor(), frontierS);												
 												break;
-			default :					img=getOriginalImageInColor();				
+			default :					img=getOriginalImageInColor();
+										break;		
+			}
+		}
+		else
+		{
+			switch(displayMode)
+			{
+			case SEGMENTATION_DISPLAY : img=(ByteImage) LabelsToRandomColors.exec(segmentedImage.getImage4D(currentFrame, Image.T));
 										break;
-		
+			case MEAN_VALUES_DISPLAY : 	img=(ByteImage) LabelsToColorByMeanValue.exec((IntegerImage) segmentedImage.getImage4D(currentFrame, Image.T), getOriginalImageInColor().getImage4D(currentFrame, Image.T));
+										break;
+			case FRONTIERS_ONLY_DISPLAY : 	BooleanImage frontiers=FrontiersFromSegmentation.exec(segmentedImage.getImage4D(currentFrame, Image.T));
+											img= new ByteImage(xDim,yDim,1,1,bDim);
+											for(int index=0;index<frontiers.size();index++)
+											{
+												boolean frontier = frontiers.getPixelBoolean(index);
+												int colorIndex= index*bDim;
+												img.setPixelBoolean(colorIndex, frontier);
+												img.setPixelBoolean(colorIndex+1, frontier);
+												img.setPixelBoolean(colorIndex+2, frontier);
+											}
+											break;
+			case FRONTIERS_OVER_IMAGE_DISPLAY : BooleanImage frontierS=FrontiersFromSegmentation.exec(segmentedImage.getImage4D(currentFrame, Image.T));
+												img=(ByteImage) DrawFrontiersOnImage.exec(getOriginalImageInColor().getImage4D(currentFrame, Image.T), frontierS);												
+												break;
+			default :					img=(ByteImage) getOriginalImageInColor().getImage4D(currentFrame, Image.T);
+										break;		
+			}			
 		}
 		
 		int imgSize=img.size();
@@ -395,7 +441,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		int type;
 		
 		
-		public CutPanel(Class<? extends AlphaTreeNodeCutDescriptor> descriptorClass, double max, String name, AlphaTreeView parent)
+		public CutPanel(Class<? extends AlphaTreeNodeCutDescriptor> descriptorClass, String name, AlphaTreeView parent)
 		{
 			super(new GridLayout(2,1,0,0));
 			this.descriptorClass=descriptorClass;
@@ -426,10 +472,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			spinner.addChangeListener(parent);
 		}
 		
-		public void updateDisplay()
-		{
-			label.setText(name+" : "+spinner.getValue());
-		}
+
 		
 	}
 	
@@ -441,7 +484,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		String name;
 		int type;
 		
-		public FilterPanel(Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass, double max, String name, AlphaTreeView parent)
+		public FilterPanel(Class<? extends AlphaTreeNodeFilterDescriptor> descriptorClass, String name, AlphaTreeView parent)
 		{
 			super(new GridLayout(3,1,0,0));
 			this.descriptorClass=descriptorClass;
@@ -476,10 +519,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			maxSpinner.addChangeListener(parent);
 		}
 		
-		public void updateDisplay()
-		{
-			label.setText(name+" in ["+minSpinner.getValue()+","+maxSpinner.getValue()+"]");
-		}
+
 	}
 
 	
