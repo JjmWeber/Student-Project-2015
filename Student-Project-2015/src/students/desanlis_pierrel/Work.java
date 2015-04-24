@@ -50,9 +50,9 @@ public class Work {
 		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
 		
 		long t = System.currentTimeMillis();
-		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
+		//AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Alpha-tree creation time : "+t+"ms");
-		AlphaTreeViewer.exec(result);
+		//AlphaTreeViewer.exec(result);
 	}
 }

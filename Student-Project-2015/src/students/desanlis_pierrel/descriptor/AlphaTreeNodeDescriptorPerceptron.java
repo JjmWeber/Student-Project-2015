@@ -1,9 +1,24 @@
 package students.desanlis_pierrel.descriptor;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import fr.loria.cortex.ginnet.dynnet.corpus.AbstractFileCorpus;
+import fr.loria.cortex.ginnet.dynnet.corpus.ClassificationCorpus;
+import fr.loria.cortex.ginnet.dynnet.corpus.patterns.Patterns;
+import fr.loria.cortex.ginnet.dynnet.corpus.patterns.TargetedPatterns;
+import fr.loria.cortex.ginnet.dynnet.methods.entries.SimpleNumericEntries;
+import fr.loria.cortex.ginnet.dynnet.methods.stoppingfunctions.TimeStoppingFunction;
+import fr.loria.cortex.ginnet.dynnet.neuralnetworks.learningratefunctions.ConstantLearningRateFunction;
+import fr.loria.cortex.ginnet.dynnet.neuralnetworks.models.perceptron.Perceptron;
+import fr.loria.cortex.ginnet.dynnet.neuralnetworks.supervisednetworks.errorfunctions.AbstractErrorFunction;
+import fr.loria.cortex.ginnet.dynnet.neuralnetworks.supervisednetworks.errorfunctions.SEErrorFunction;
+import fr.loria.cortex.ginnet.dynnet.neuralnetworks.supervisednetworks.transfertfunctions.AbstractTransferFunction;
+import fr.loria.cortex.ginnet.dynnet.neuralnetworks.supervisednetworks.transfertfunctions.LinearTransferFunction;
+import fr.loria.cortex.ginnet.dynnet.neuralnetworks.supervisednetworks.transfertfunctions.TanHTransferFunction;
+import fr.loria.cortex.ginnet.dynnet.utils.DynNetException;
 import fr.unistra.pelican.BooleanImage;
 import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
@@ -16,6 +31,9 @@ import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescriptor{
 	private static double min=Double.POSITIVE_INFINITY;
 	private static double max=Double.NEGATIVE_INFINITY;
+
+	private static AbstractFileCorpus corpus;
+	private static Perceptron perceptron;
 
 	private static int taille_x;
 	private static int taille_y;
@@ -30,9 +48,47 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 	 */
 
 	public static void init (int taille_x, int taille_y, String path){
+		String corpusPath;
 		AlphaTreeNodeDescriptorPerceptron.taille_x = taille_x;
 		AlphaTreeNodeDescriptorPerceptron.taille_y = taille_y;		
-		createCorpus(path);
+
+		corpusPath = createCorpus(path);
+		try {
+			corpus = new ClassificationCorpus(corpusPath);
+			// topologie du réseau
+			int nbAttribute = corpus.getNbAttribute();
+			int nbTarget = ((TargetedPatterns)corpus).getNbTarget();
+			int[] sizes = {nbAttribute, nbAttribute/2, nbTarget};
+			AbstractTransferFunction [] functions={new LinearTransferFunction(),
+					new TanHTransferFunction(),
+					new LinearTransferFunction()};
+
+			perceptron = new Perceptron(sizes, functions, 0.005f, 0.0f, false,
+					new ConstantLearningRateFunction(), new TimeStoppingFunction(),
+					new SEErrorFunction(),new SimpleNumericEntries(corpus.getPatterns()),
+					corpus.getType().equals("Forecast"));
+
+			((TimeStoppingFunction)perceptron.getStoppingFunction()).setMaxEpoch(200);
+
+			System.out.println("Nb patterns: " + corpus.getNbPattern());
+			System.out.println("Nb learn patterns: " + corpus.getNbPattern(Patterns.LEARN));
+			System.out.println("Nb test patterns: " + corpus.getNbPattern(Patterns.TEST));
+
+			//Initialisation du réseau
+			perceptron.initializeConnections();
+			perceptron.learn();
+			System.out.println("Learn error: " + perceptron.getLearnError());
+			perceptron.test();
+			System.out.println("Test error: " + perceptron.getTestError());
+
+			// Reload best configuration
+			perceptron.saveSolution();
+			perceptron.reset();
+			perceptron.loadSolution();
+
+		} catch (FileNotFoundException | DynNetException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static String createCorpus(String path){
