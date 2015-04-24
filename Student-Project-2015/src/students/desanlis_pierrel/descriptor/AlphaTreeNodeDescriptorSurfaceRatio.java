@@ -6,12 +6,10 @@ import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
 
 /**
- * SR = surface ratio
  * Pourcentage occupé par les pixels du noeud par rapport a un carré de côté égale au plus grand côté du noeud
- * (TODO: trouver un nom de class plus explicite)
  */
 
-public class AlphaTreeNodeDescriptorSR extends AlphaTreeNodeFilterDescriptor {
+public class AlphaTreeNodeDescriptorSurfaceRatio extends AlphaTreeNodeFilterDescriptor {
 	private static double min=Double.POSITIVE_INFINITY;
 	private static double max=Double.NEGATIVE_INFINITY;
 	
@@ -62,7 +60,7 @@ public class AlphaTreeNodeDescriptorSR extends AlphaTreeNodeFilterDescriptor {
 
 	@Override
 	public void mergeWith(AlphaTreeNodeDescriptor descriptor) {
-		AlphaTreeNodeDescriptorSR desc = (AlphaTreeNodeDescriptorSR) descriptor;
+		AlphaTreeNodeDescriptorSurfaceRatio desc = (AlphaTreeNodeDescriptorSurfaceRatio) descriptor;
 		if (desc.minX < this.minX) this.minX = desc.minX;
 		if (desc.maxX > this.maxX) this.maxX = desc.maxX;
 		if (desc.minY < this.minY) this.minY = desc.minY;
@@ -70,7 +68,7 @@ public class AlphaTreeNodeDescriptorSR extends AlphaTreeNodeFilterDescriptor {
 		
 		this.nb_pixel+= desc.nb_pixel;	
 		
-		double ratio = getRatio();
+		double ratio = getRatio(); //TODO Surement moyen de s'en sortir avec un simple calcul
 		if (ratio < min)
 			min = ratio;
 		if (ratio > max)
@@ -89,7 +87,7 @@ public class AlphaTreeNodeDescriptorSR extends AlphaTreeNodeFilterDescriptor {
 
 	@Override
 	public AlphaTreeNodeDescriptor clone() {
-		AlphaTreeNodeDescriptorSR clone = new AlphaTreeNodeDescriptorSR();
+		AlphaTreeNodeDescriptorSurfaceRatio clone = new AlphaTreeNodeDescriptorSurfaceRatio();
 		clone.minX = this.minX;
 		clone.maxX = this.maxX;
 		clone.minY = this.minY;

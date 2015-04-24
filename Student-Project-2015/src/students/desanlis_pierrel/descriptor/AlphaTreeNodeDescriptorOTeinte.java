@@ -1,18 +1,23 @@
 package students.desanlis_pierrel.descriptor;
 
 import demo.AlphaTreeDemo;
+import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
+import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
 /**
  * Essai creation de descripteur type Omega bas� sur la teinte 
  * @author Desanlis/Pierrel
  *
  */
-public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeCutDescriptor {
-	private int min;
-	private int max;
+public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeFilterDescriptor {
+	private static int min=Integer.MAX_VALUE;
+	private static int max=Integer.MIN_VALUE;
+	
+	private int valMin;
+	private int valMax;
 	private int oTeinte;	
 	
 	/**
@@ -46,37 +51,44 @@ public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeCutDescriptor {
 	}
 	
 	public void AlphaTreeNodeDescriptorTeinte() {
-		min = 0;
-		max = 360;
+		valMin = 0;
+		valMax = 360;
 		oTeinte = -1;
 	}
 	
 	@Override
-	public void addPixel(int[] values) {
+	public void addPixel(int[] values, PointVideo coord){
 		int val = rvb2t(values);
-		if (val < min)
-			min = val;
-		if (val > max)
-			max = val;
-		if (max - min > oTeinte) //maj
-			oTeinte = max-min;
+		if (val < valMin)
+			valMin = val;
+		if (val > valMax)
+			valMax = val;
+		if (valMax - valMin > oTeinte) //maj
+			oTeinte = valMax-valMin;
+		
+		if (oTeinte < min)
+			min = oTeinte;
+		if (oTeinte > max)
+			max = oTeinte;
+		
 	}
 
 	@Override
 	public void mergeWith(AlphaTreeNodeDescriptor descriptor) {
 		AlphaTreeNodeDescriptorOTeinte desc = (AlphaTreeNodeDescriptorOTeinte)descriptor;
-		if (desc.min < min)
-			min = desc.min;
-		if (desc.max > max)
-			max = desc.max;
-		if (max-min > oTeinte)
-			oTeinte = max-min;
+		if (desc.valMin < valMin)
+			valMin = desc.valMin;
+		if (desc.valMax > valMax)
+			valMax = desc.valMax;
+		if (valMax-valMin > oTeinte)
+			oTeinte = valMax-valMin;
+		
+		if (oTeinte < min)
+			min = oTeinte;
+		if (oTeinte > max)
+			max = oTeinte;
 	}
 
-	@Override
-	public boolean check(double value) {
-		return value>=oTeinte;
-	}
 
 	@Override
 	public double getValue() {
@@ -85,15 +97,38 @@ public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeCutDescriptor {
 
 	@Override
 	public String getDescriptorName() {
-		return "OTeinte";
+		return "Ecart teinte";
 	}
 
 	@Override
 	public AlphaTreeNodeDescriptor clone() {
 		AlphaTreeNodeDescriptorOTeinte clone = new AlphaTreeNodeDescriptorOTeinte();
-		clone.min = min;
-		clone.max = max;
+		clone.valMin = valMin;
+		clone.valMax = valMax;
 		clone.oTeinte=oTeinte;
 		return clone;
+	}
+
+
+	@Override
+	public int getType() {
+		return AlphaTreeNodeFilterDescriptor.TYPE_INT;
+	}
+
+	@Override
+	public double getMin() {
+		return min;
+	}
+
+	@Override
+	public double getMax() {
+		return max;
+	}
+
+	@Override
+	public boolean check(double minValue, double maxValues) {
+		if (oTeinte >= minValue && oTeinte <= maxValues)
+			return true;
+		return false;
 	}
 }
