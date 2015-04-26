@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
+import students.desanlis_pierrel.descriptor.AlphaTreeNodeDescriptorSyntax.PointCercle;
 import fr.loria.cortex.ginnet.dynnet.corpus.AbstractFileCorpus;
 import fr.loria.cortex.ginnet.dynnet.corpus.ClassificationCorpus;
 import fr.loria.cortex.ginnet.dynnet.corpus.patterns.Patterns;
@@ -37,7 +40,19 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 
 	private static int taille_x;
 	private static int taille_y;
+	
+	//Parametre par defaut
+	private double value;
+	private int nb_new = 0;
+	private int minX = Integer.MAX_VALUE;
+	private int maxX = Integer.MIN_VALUE;
+	private int minY = Integer.MAX_VALUE;
+	private int maxY = Integer.MIN_VALUE;
+	private static int frequence = 50; // nombre de nouveau pixel avant recalcule
+	
+	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>();
 
+	
 	/**
 	 * 
 	 * @param taille_x largeur des images (& zone) en entrée
@@ -104,7 +119,8 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 			writer.write("Label,Target,Target\n");
 			for (int i = 0 ; i < taille_x*taille_y ; i++) //Nom des colonnes (sert a rien)
 				writer.write("pix" + i +",");
-			writer.write("Symbol,OK,NOK\n");
+			//writer.write("Symbol,OK,NOK\n");
+			writer.write("Symbol,OK\n"); //TODO voir entre 1 ou deux neurone c'est quoi le mieu
 			writer.write(dirToCrp(path + "\\learn\\ok",true,true));
 			//writer.write(dirToCrp(path + "\\learn\\nok",true,false));
 			//writer.write(dirToCrp(path + "\\test\\ok",false,true));
@@ -141,10 +157,11 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 							else
 								crp += "0,";
 					}
-				if (ok)
-					crp += "OK,1.0,0.0,";
-				else
-					crp += "NOK,0.0,1.0,";
+//				if (ok)
+//					crp += "OK,1.0,0.0,";
+//				else
+//					crp += "NOK,0.0,1.0,";
+				crp += "OK,1.0,";
 				if (learn)
 					crp += "(Learn)\n";
 				else
@@ -155,50 +172,101 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 		return crp;
 	}
 
+	private void calcValue(){
+		float[] inputs = new float[taille_x*taille_y];
+		float[] targets = {1.0f};
+		for (PointVideo p : listPixel){ //TODO trouver pq les valeur se mettent pas a jour
+			if (p.x < minX) minX = p.x;
+			if (p.x > maxX) maxX = p.x;
+			if (p.y < minY) minY = p.y;
+			if (p.y > maxY) maxY = p.y;
+		}
+		
+		for ( int i = 0 ; i < inputs.length ; i++)
+			inputs[i] = 0.0f;
+		for (PointVideo p : listPixel){
+			inputs[(p.x-minX) + (p.x-minX)*(p.y-minY)] = 1.0f;
+		}
+
+		float[] results = perceptron.testAPattern(inputs, targets);
+		value = results[0];
+		if (value < min)
+			min = value;
+		if (value > max)
+			max = value;
+	}
+	
+	public AlphaTreeNodeDescriptorPerceptron() {
+		listPixel = new LinkedList<PointVideo>();
+	}
+	
 	@Override
 	public boolean check(double minValue, double maxValues) {
-		// TODO Auto-generated method stub
+		if (value >= minValue && value <= maxValues)
+			return true;
 		return false;
 	}
 	@Override
 	public void addPixel(int[] values, PointVideo coord) {
-		// TODO Auto-generated method stub
+		if (coord.x < minX)
+			minX = coord.x;
+		if (coord.x > maxX)
+			maxX = coord.x;
+		if (coord.y < minY)
+			minY = coord.y;
+		if (coord.y > maxY)
+			maxY = coord.y;
+		
+		listPixel.add(coord);
+		
+		nb_new++;
+		if (nb_new > frequence)
+			calcValue();
 
 	}
 	@Override
 	public void mergeWith(AlphaTreeNodeDescriptor descriptor) {
-		// TODO Auto-generated method stub
+		AlphaTreeNodeDescriptorPerceptron desc = (AlphaTreeNodeDescriptorPerceptron) descriptor;
+		if (desc.minX < this.minX) this.minX = desc.minX;
+		if (desc.maxX > this.maxX) this.maxX = desc.maxX;
+		if (desc.minY < this.minY) this.minY = desc.minY;
+		if (desc.maxY > this.maxY) this.maxY = desc.maxY;
 
+		nb_new += desc.nb_new;
+		listPixel.addAll(desc.listPixel);
+		calcValue();
 	}
+		
 	@Override
 	public double getValue() {
-		// TODO Auto-generated method stub
-		return 0;
+		return value;
 	}
 	@Override
 	public String getDescriptorName() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Perceptron";
 	}
 	@Override
 	public AlphaTreeNodeDescriptor clone() {
-		// TODO Auto-generated method stub
-		return null;
+		AlphaTreeNodeDescriptorPerceptron clone = new AlphaTreeNodeDescriptorPerceptron();
+		clone.listPixel = new LinkedList<PointVideo>();
+		clone.listPixel.addAll(this.listPixel);
+		clone.maxX = this.maxX;
+		clone.maxY = this.maxY;
+		clone.minX = this.minX;
+		clone.maxX = this.maxX;
+		return clone;
 	}
 	@Override
 	public int getType() {
-		// TODO Auto-generated method stub
-		return 0;
+		return AlphaTreeNodeDescriptor.TYPE_DOUBLE;
 	}
 	@Override
 	public double getMin() {
-		// TODO Auto-generated method stub
-		return 0;
+		return min;
 	}
 	@Override
 	public double getMax() {
-		// TODO Auto-generated method stub
-		return 0;
+		return max;
 	}
 
 }
