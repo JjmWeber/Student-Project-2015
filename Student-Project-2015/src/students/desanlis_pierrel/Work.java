@@ -26,9 +26,13 @@ public class Work {
 
 	public static void main(String[] args) {
 		ByteImage lena = (ByteImage)ImageLoader.exec(FileChooserToolBox.openOpenFileChooser(null).getAbsolutePath());
-		//AlphaTreeNodeDescriptorSyntax.apprentissage(FileChooserToolBox.openOpenDirectoryChooser(null).getAbsolutePath());
-//		AlphaTreeNodeDescriptorSyntax.init(100, 100, 5, 50, FileChooserToolBox.openOpenDirectoryChooser(null).getAbsolutePath());
-		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
+		
+		
+//		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 3),lena); //Kmeans !!!
+//		System.out.println("Fin kmeans");
+	AlphaTreeNodeDescriptorSyntax.init(32, 32, 5, 50,"C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
+//		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
+		
 // a essayer avant -> reduire le nombre de couleur intelligement avec des kmeans (commencer par trouver l'algo)
 // après avoir essayer => moyen   : si le nombre de centre mobile est faible et a ce moment les descripteur alpha/omega serve a rien (trop d'écart)
 //									si le nombre de centre mobile est elevé ont peu utiliser alpha/omega mais les calcules sont beaucoup trop long
@@ -39,7 +43,8 @@ public class Work {
 		Viewer2D.exec(GrayGradient.exec(src, FlatStructuringElement2D
 			.createSquareFlatStructuringElement(3)), "Morpho");
  */
-		//lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 32),lena);
+		
+		//lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 3),lena);
 		ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptors = new ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> ();
 		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
 		//cutDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
@@ -48,11 +53,12 @@ public class Work {
 		//filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorSR.class);
 		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
+		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
 		
 		long t = System.currentTimeMillis();
-		//AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
+		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Alpha-tree creation time : "+t+"ms");
-		//AlphaTreeViewer.exec(result);
+		AlphaTreeViewer.exec(result);
 	}
 }

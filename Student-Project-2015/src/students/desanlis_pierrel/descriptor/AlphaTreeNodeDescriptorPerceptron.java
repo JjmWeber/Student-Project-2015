@@ -57,8 +57,7 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 	 * 
 	 * @param taille_x largeur des images (& zone) en entrée
 	 * @param taille_y hauteur des images (& zone) en entrée
-	 * @param path dossier contenant les symboles pour l'apprentissage: deux sous dossier Learn et Test
-	 * 	chacun contenant deux sous dossier OK NOK contenant des symboles N/B (dimmension libre)
+	 * @param path dossier contenant les symboles pour l'apprentissage: deux sous dossier OK NOK contenant des symboles N/B (dimmension libre)
 	 * @throws IOException 
 	 */
 
@@ -84,7 +83,8 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 					corpus.getType().equals("Forecast"));
 
 			((TimeStoppingFunction)perceptron.getStoppingFunction()).setMaxEpoch(200);
-
+			
+			corpus.separateLearnAndTest(0.33f);
 			System.out.println("Nb patterns: " + corpus.getNbPattern());
 			System.out.println("Nb learn patterns: " + corpus.getNbPattern(Patterns.LEARN));
 			System.out.println("Nb test patterns: " + corpus.getNbPattern(Patterns.TEST));
@@ -122,7 +122,7 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 			//writer.write("Symbol,OK,NOK\n");
 			writer.write("Symbol,OK\n"); //TODO voir entre 1 ou deux neurone c'est quoi le mieu
 			writer.write(dirToCrp(path + "\\learn\\ok",true,true));
-			//writer.write(dirToCrp(path + "\\learn\\nok",true,false));
+			writer.write(dirToCrp(path + "\\learn\\nok",true,false));
 			//writer.write(dirToCrp(path + "\\test\\ok",false,true));
 			//writer.write(dirToCrp(path + "\\test\\nok",false,false));
 			writer.close();
@@ -157,15 +157,15 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 							else
 								crp += "0,";
 					}
-//				if (ok)
-//					crp += "OK,1.0,0.0,";
-//				else
-//					crp += "NOK,0.0,1.0,";
-				crp += "OK,1.0,";
-				if (learn)
-					crp += "(Learn)\n";
+				if (ok)
+					crp += "OK,1.0\n";
 				else
-					crp += "(Test)\n";
+					crp += "NOK,0.0\n";
+
+//				if (learn)
+//					crp += "(Learn)\n";
+//				else
+//					crp += "(Test)\n";
 			}
 		}
 

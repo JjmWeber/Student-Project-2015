@@ -51,6 +51,11 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 			maxY = coord.y;
 
 		listPixel.add(coord);
+		double value = getValue(); 
+		if (value < min)
+			min = value;
+		if (value > max)
+			max = value;
 	}
 
 
