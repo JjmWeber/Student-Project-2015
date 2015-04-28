@@ -65,14 +65,16 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 		String corpusPath;
 		AlphaTreeNodeDescriptorPerceptron.taille_x = taille_x;
 		AlphaTreeNodeDescriptorPerceptron.taille_y = taille_y;		
-
+		
+		System.out.println("Début apprentissage perceptron");
 		corpusPath = createCorpus(path);
+		//corpusPath = "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\corpus.crp";
 		try {
 			corpus = new ClassificationCorpus(corpusPath);
 			// topologie du réseau
 			int nbAttribute = corpus.getNbAttribute();
 			int nbTarget = ((TargetedPatterns)corpus).getNbTarget();
-			int[] sizes = {nbAttribute, nbAttribute/2, nbTarget};
+			int[] sizes = {nbAttribute, 10, nbTarget};
 			AbstractTransferFunction [] functions={new LinearTransferFunction(),
 					new TanHTransferFunction(),
 					new LinearTransferFunction()};
@@ -82,9 +84,10 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 					new SEErrorFunction(),new SimpleNumericEntries(corpus.getPatterns()),
 					corpus.getType().equals("Forecast"));
 
-			((TimeStoppingFunction)perceptron.getStoppingFunction()).setMaxEpoch(200);
+			((TimeStoppingFunction)perceptron.getStoppingFunction()).setMaxEpoch(50); // A priori en 50 c'est bon
 			
-			corpus.separateLearnAndTest(0.33f);
+			//corpus.separateLearnAndTest(0.33f);
+			
 			System.out.println("Nb patterns: " + corpus.getNbPattern());
 			System.out.println("Nb learn patterns: " + corpus.getNbPattern(Patterns.LEARN));
 			System.out.println("Nb test patterns: " + corpus.getNbPattern(Patterns.TEST));
@@ -107,6 +110,7 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 	}
 
 	private static String createCorpus(String path){
+		System.out.println("Création du corpus");
 		File corpus = new File("corpus.crp");
 		FileWriter writer = null;
 		try{
@@ -119,12 +123,12 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 			writer.write("Label,Target,Target\n");
 			for (int i = 0 ; i < taille_x*taille_y ; i++) //Nom des colonnes (sert a rien)
 				writer.write("pix" + i +",");
-			//writer.write("Symbol,OK,NOK\n");
-			writer.write("Symbol,OK\n"); //TODO voir entre 1 ou deux neurone c'est quoi le mieu
+			writer.write("Class,OK,NOK\n");
+			//writer.write("Symbol,OK\n"); //TODO voir entre 1 ou deux neurone c'est quoi le mieu
 			writer.write(dirToCrp(path + "\\learn\\ok",true,true));
 			writer.write(dirToCrp(path + "\\learn\\nok",true,false));
-			//writer.write(dirToCrp(path + "\\test\\ok",false,true));
-			//writer.write(dirToCrp(path + "\\test\\nok",false,false));
+			writer.write(dirToCrp(path + "\\test\\ok",false,true));
+			writer.write(dirToCrp(path + "\\test\\nok",false,false));
 			writer.close();
 		}
 		catch (IOException e){
@@ -146,26 +150,22 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 				ByteImage image = (ByteImage)ImageLoader.exec(f.getAbsolutePath());	
 				double coeff_x = (double)taille_x/image.getXDim(); 
 				double coeff_y = (double)taille_y/image.getYDim();
-				for (int x = 0 ; x < image.xdim ; x++)
-					for (int y = 0 ; y < image.ydim ; y++)
-					{
-						int x2 = (int)(Math.floor(x/coeff_x));
-						int y2 = (int)(Math.floor(y/coeff_y));
-						if (x2 < image.xdim  && x2 >= 0 && y2 < image.ydim && y2 >= 0) //TODO Faire un calcul correct pour eviter le if
-							if (image.getPixelXYByte(x2,y2) == 0)
-								crp += "1,";
-							else
-								crp += "0,";
+				for (int x = 0 ; x < taille_x ; x++)
+					for (int y = 0 ; y < taille_y ; y++){
+						if (image.getPixelXYByte((int)(Math.floor(x*coeff_x)), (int)(Math.floor(y*coeff_y))) == 0)
+							crp += "1.0,";
+						else
+							crp += "0.0,";
 					}
 				if (ok)
-					crp += "OK,1.0\n";
+					crp += "OK,1.0,0,0.0,";
 				else
-					crp += "NOK,0.0\n";
+					crp += "NOK,0.0,1.0,";
 
-//				if (learn)
-//					crp += "(Learn)\n";
-//				else
-//					crp += "(Test)\n";
+				if (learn)
+					crp += "(Learn)\n";
+				else
+					crp += "(Test)\n";
 			}
 		}
 
@@ -174,22 +174,39 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 
 	private void calcValue(){
 		float[] inputs = new float[taille_x*taille_y];
-		float[] targets = {1.0f};
+		float[] targets = {1.0f, 0.0f};
+//		minX = Integer.MAX_VALUE;
+//		maxY = Integer.MIN_VALUE;
 		for (PointVideo p : listPixel){ //TODO trouver pq les valeur se mettent pas a jour
 			if (p.x < minX) minX = p.x;
 			if (p.x > maxX) maxX = p.x;
 			if (p.y < minY) minY = p.y;
 			if (p.y > maxY) maxY = p.y;
 		}
+		BooleanImage im = new BooleanImage(maxX-minX + 1, maxY-minY+1,1,1,1);		
+		for (PointVideo p : listPixel){
+			im.setPixelBoolean(p.x-minX, p.y-minY, 0, 0, 0, true);
+		}
 		
+		double coeff_x = (double)taille_x/im.getXDim(); 
+		double coeff_y = (double)taille_y/im.getYDim();
+		for (int x = 0 ; x < taille_x ; x++)
+			for (int y = 0 ; y < taille_y ; y++){
+				if (im.getPixelXYByte((int)(Math.floor(x/coeff_x)), (int)(Math.floor(y/coeff_y))) == 0)
+					inputs[x+taille_x*y] = 1.0f;
+				else
+					inputs[x+taille_x*y] = 0.0f;
+			}
+		/*
 		for ( int i = 0 ; i < inputs.length ; i++)
 			inputs[i] = 0.0f;
 		for (PointVideo p : listPixel){
-			inputs[(p.x-minX) + (p.x-minX)*(p.y-minY)] = 1.0f;
+			inputs[(p.x-minX) + (taille_y)*(p.y-minY)] = 1.0f;
 		}
+		*/
 
 		float[] results = perceptron.testAPattern(inputs, targets);
-		value = results[0];
+		value = results[0] - results[1];
 		if (value < min)
 			min = value;
 		if (value > max)
