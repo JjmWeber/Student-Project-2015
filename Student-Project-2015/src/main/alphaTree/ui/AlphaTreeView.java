@@ -1,10 +1,12 @@
 package main.alphaTree.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -19,6 +21,8 @@ import java.util.ArrayList;
 
 import javax.media.jai.RasterFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -30,6 +34,7 @@ import javax.swing.JSpinner;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -53,7 +58,7 @@ import fr.unistra.pelican.algorithms.io.ImageSave;
 
 
 
-public class AlphaTreeView extends JFrame implements ChangeListener, MouseListener{
+public class AlphaTreeView extends JDialog implements ChangeListener, MouseListener{
 
 	
 	/**
@@ -88,6 +93,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private JPanel root;
 	private JScrollPane scroll;
 	private JPanel rightPanel;
+	private JPanel buttonPanel;
 	private JPanel displayPanel;
 	private JPanel parametersPanel;
 	private JPanel treeCutPanel;
@@ -106,8 +112,13 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 	private FilterPanel[] filterPanels;
 	private JSlider frameSlider;
 	private JLabel frameLabel;
+	private JButton doneButton;
 	
 
+	public IntegerImage getSegmentedImage()
+	{
+		return segmentedImage;
+	}
 
 	
 	
@@ -136,6 +147,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 		
 		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.setTitle("Alpha-Tree Viewer");
+		this.setModal(true);
 		
 		root = new JPanel();
 
@@ -163,10 +175,16 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 			root.add(videoFrameSelector,BorderLayout.SOUTH);
 		}
 		
+		buttonPanel=new JPanel(new BorderLayout());
+		rightPanel.add(buttonPanel, BorderLayout.NORTH);
+		
+		doneButton = new JButton("DONE");
+		buttonPanel.add(doneButton, BorderLayout.NORTH);
+		
 		displayPanel=new JPanel();
 		displayPanel.setLayout(new GridLayout(5,1,0,0));
 		displayPanel.setBorder(new TitledBorder("Display"));
-		rightPanel.add(displayPanel, BorderLayout.NORTH);
+		buttonPanel.add(displayPanel, BorderLayout.SOUTH);
 		
 		parametersPanel=new JPanel(new BorderLayout());
 		rightPanel.add(parametersPanel,BorderLayout.SOUTH);
@@ -227,6 +245,7 @@ public class AlphaTreeView extends JFrame implements ChangeListener, MouseListen
 
 		
 		//Implement listener
+		doneButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { Window window = SwingUtilities.windowForComponent((Component)e.getSource());window.dispose();}});
 		segmentationButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=SEGMENTATION_DISPLAY; makeDisplayedImage();}});
 		meanValueButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=MEAN_VALUES_DISPLAY; makeDisplayedImage();}});
 		frontierOnlyButton.addActionListener(new ActionListener() {@Override public void actionPerformed(ActionEvent e) { displayMode=FRONTIERS_ONLY_DISPLAY; makeDisplayedImage();}});

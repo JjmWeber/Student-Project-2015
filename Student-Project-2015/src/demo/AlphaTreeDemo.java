@@ -11,7 +11,10 @@ import main.alphaTree.descriptor.AlphaTreeNodeDescriptorHeightWidthRatio;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorOmega;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import fr.unistra.pelican.ByteImage;
+import fr.unistra.pelican.IntegerImage;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
+import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToRandomColors;
+import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 
 public class AlphaTreeDemo {
 	
@@ -32,7 +35,8 @@ public class AlphaTreeDemo {
 		AlphaTree result = AlphaTreeBuilder.exec(test,cutDescriptors, filterDescriptors);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Alpha-tree creation time : "+t+"ms");
-		AlphaTreeViewer.exec(result);
+		IntegerImage segmentation = (IntegerImage) AlphaTreeViewer.exec(result);
+		Viewer2D.exec(LabelsToRandomColors.exec(segmentation));
 	}
 
 }
