@@ -30,7 +30,10 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 	private int maxY = Integer.MIN_VALUE;
 
 	private enum Direction {haut, bas, gauche, droite};
-
+	private int nouveauPts = 0;
+	private double ratioMaj = 0.10; //ratio de nouveau pts avant de proceder à une maj de la valeur
+	private double value = 0;
+	
 	@Override
 	public boolean check(double minValue, double maxValues) {
 		double value = getValue();
@@ -50,12 +53,18 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 		if (coord.y > maxY)
 			maxY = coord.y;
 
+
 		listPixel.add(coord);
-		double value = getValue(); 
-		if (value < min)
-			min = value;
-		if (value > max)
-			max = value;
+		nouveauPts++;
+
+		if (nouveauPts/listPixel.size() > ratioMaj){			
+			value = calcValue(); 
+			if (value < min)
+				min = value;
+			if (value > max)
+				max = value;
+		}
+
 	}
 
 
@@ -67,16 +76,34 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 		if (desc.minY < this.minY) this.minY = desc.minY;
 		if (desc.maxY > this.maxY) this.maxY = desc.maxY;
 
-		listPixel.addAll(desc.listPixel);
-		double value = getValue(); 
-		if (value < min)
-			min = value;
-		if (value > max)
-			max = value;
+
+		//Vers la fin il arrive qu'une très grande zone fusionne avec une toute petite, dans ce cas
+		//on ajoute la petite a la grande
+		if (desc.listPixel.size() > listPixel.size()){ 
+			LinkedList<PointVideo> buff = this.listPixel;
+			this.listPixel = desc.listPixel;
+			this.nouveauPts = desc.nouveauPts;
+			this.value = desc.value;
+			this.nouveauPts += buff.size();
+			this.listPixel.addAll(buff);
+		}
+		else{
+			listPixel.addAll(desc.listPixel);
+			nouveauPts+= desc.listPixel.size();
+		}
+
+		if (nouveauPts/listPixel.size() > ratioMaj)
+		{
+			value = calcValue(); 
+			if (value < min)
+				min = value;
+			if (value > max)
+				max = value;
+		}
+
 	}
 
-	@Override
-	public double getValue() {
+	private double calcValue(){
 		if (listPixel.size() == 0)
 			return 0;
 		else
@@ -87,7 +114,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 				if (p.y < minY) minY = p.y;
 				if (p.y > maxY) maxY = p.y;
 			}
-				
+
 			BooleanImage im = new BooleanImage(maxX-minX + 1, maxY-minY+1,1,1,1);
 			for (PointVideo p : listPixel){
 				im.setPixelBoolean(p.x-minX, p.y-minY, 0, 0, 0, true);
@@ -244,9 +271,14 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 					fin = true;
 
 			}
-			return podo/taille_x*taille_y;
+			return podo/(taille_x*taille_y)*100;
 		}
 	}
+	@Override
+	public double getValue() {
+		return value;
+	}
+
 
 	@Override
 	public String getDescriptorName() {

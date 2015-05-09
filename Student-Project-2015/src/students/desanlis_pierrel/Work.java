@@ -28,10 +28,10 @@ public class Work {
 		ByteImage lena = (ByteImage)ImageLoader.exec(FileChooserToolBox.openOpenFileChooser(null).getAbsolutePath());
 		
 		
-//		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 3),lena); //Kmeans !!!
+//		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 12),lena); //Kmeans !!!
 //		System.out.println("Fin kmeans");
 //	AlphaTreeNodeDescriptorSyntax.init(32, 32, 5, 50,"C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
-		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
+//		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
 		
 // a essayer avant -> reduire le nombre de couleur intelligement avec des kmeans (commencer par trouver l'algo)
 // après avoir essayer => moyen   : si le nombre de centre mobile est faible et a ce moment les descripteur alpha/omega serve a rien (trop d'écart)
@@ -53,8 +53,8 @@ public class Work {
 		//filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorSR.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
-		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
+		//filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
 		long t = System.currentTimeMillis();
 		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
 		t=System.currentTimeMillis()-t;
