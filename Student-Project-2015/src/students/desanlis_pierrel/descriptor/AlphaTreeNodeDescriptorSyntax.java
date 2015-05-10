@@ -37,8 +37,8 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	private int maxY = Integer.MIN_VALUE;
 
 	//Parametre par defaut
-	private int nb_new = 0;
-	private static int frequence = 50; // nombre de nouveau pixel avant recalcule
+	private int nouveauPts;
+	private static double ratioMaj = 0.10; // nombre de nouveau pixel avant recalcule
 	private static int rayon = 5; // Rayon du cercle utilise pour determiner le contour
 	private static int taille_x = 100; //Dimension du carré utilisé pour redimensionner l'image
 	private static int taille_y = 100;
@@ -56,10 +56,10 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	 * @param frequence
 	 * @param dir dossier contenant les symboles a "apprendre"
 	 */
-	public static void init (int taille_x, int taille_y, int rayon, int frequence, String path){
+	public static void init (int taille_x, int taille_y, int rayon, double ratioMaj, String path){
 		AlphaTreeNodeDescriptorSyntax.taille_x = taille_x;
 		AlphaTreeNodeDescriptorSyntax.taille_y = taille_y;
-		AlphaTreeNodeDescriptorSyntax.frequence = frequence;
+		AlphaTreeNodeDescriptorSyntax.ratioMaj = ratioMaj;
 		AlphaTreeNodeDescriptorSyntax.rayon = rayon;	
 
 		//Calcul des valeurs du cercle
@@ -128,7 +128,7 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 
 	public AlphaTreeNodeDescriptorSyntax(){}
 
-	//TODO Pour gratter des calculs inutile quand ca marchera: comme il y a bcp de forme rectangulaire au debut si le carré est quasi plein ne pas calculer
+	//TODO faire du menage dans les parametres inutiles
 	private static int calcValue(int maxX, int minX, int maxY, int minY, LinkedList<PointVideo> listPixel, boolean apprentissage){		
 		Direction direction;
 		String result = "";
@@ -378,8 +378,8 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 			maxY = coord.y;
 
 		listPixel.add(coord);
-		nb_new++;
-		if (nb_new >= frequence)
+		nouveauPts++;
+		if ((double)nouveauPts/listPixel.size() > ratioMaj)
 			value = calcValue(maxX,minX,maxY,minY,listPixel,false);
 	}
 
@@ -392,10 +392,20 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 		if (desc.minY < this.minY) this.minY = desc.minY;
 		if (desc.maxY > this.maxY) this.maxY = desc.maxY;
 
-		nb_new += desc.nb_new;
-		listPixel.addAll(desc.listPixel);
-
-		//if (nb_new > frequence)
+		if (desc.listPixel.size() > listPixel.size()){
+			LinkedList<PointVideo> buff = this.listPixel;
+			this.listPixel = desc.listPixel;
+			this.nouveauPts = desc.nouveauPts;
+			this.value = desc.value;
+			this.nouveauPts += buff.size();
+			this.listPixel.addAll(buff);
+		}
+		else{
+			listPixel.addAll(desc.listPixel);
+			nouveauPts+=desc.listPixel.size();
+		}
+		
+		if ((double)nouveauPts/listPixel.size() > ratioMaj)
 			value = calcValue(maxX,minX,maxY,minY,listPixel,false);
 	}
 

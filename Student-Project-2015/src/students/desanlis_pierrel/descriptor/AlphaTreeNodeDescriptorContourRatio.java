@@ -57,7 +57,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 		listPixel.add(coord);
 		nouveauPts++;
 
-		if (nouveauPts/listPixel.size() > ratioMaj){			
+		if ((double)nouveauPts/listPixel.size() > ratioMaj){			
 			value = calcValue(); 
 			if (value < min)
 				min = value;
@@ -92,7 +92,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 			nouveauPts+= desc.listPixel.size();
 		}
 
-		if (nouveauPts/listPixel.size() > ratioMaj)
+		if ((double)nouveauPts/listPixel.size() > ratioMaj)
 		{
 			value = calcValue(); 
 			if (value < min)
