@@ -65,7 +65,7 @@ public class AlphaTreeNodeDescriptorHeightWidthRatio extends
 
 	@Override
 	public String getDescriptorName() {
-		return "Height / Width Ratio";
+		return "Height/Width Ratio";
 	}
 
 	@Override

@@ -43,6 +43,7 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	private static int taille_x = 100; //Dimension du carré utilisé pour redimensionner l'image
 	private static int taille_y = 100;
 	private static LinkedList<String> base = new LinkedList<String>();	
+	private static int minPix = 100;
 
 	private int value;
 	private static ArrayList<PointCercle> listCercle; // liste des points qui compose le cercle (en static et calculer qu'une fois)
@@ -56,11 +57,12 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	 * @param frequence
 	 * @param dir dossier contenant les symboles a "apprendre"
 	 */
-	public static void init (int taille_x, int taille_y, int rayon, double ratioMaj, String path){
+	public static void init (int taille_x, int taille_y, int minPix, int rayon, double ratioMaj, String path){
 		AlphaTreeNodeDescriptorSyntax.taille_x = taille_x;
 		AlphaTreeNodeDescriptorSyntax.taille_y = taille_y;
 		AlphaTreeNodeDescriptorSyntax.ratioMaj = ratioMaj;
 		AlphaTreeNodeDescriptorSyntax.rayon = rayon;	
+		AlphaTreeNodeDescriptorSyntax.minPix = minPix;
 
 		//Calcul des valeurs du cercle
 		listCercle = new ArrayList<PointCercle>();
@@ -379,7 +381,7 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 
 		listPixel.add(coord);
 		nouveauPts++;
-		if ((double)nouveauPts/listPixel.size() > ratioMaj)
+		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
 			value = calcValue(maxX,minX,maxY,minY,listPixel,false);
 	}
 
@@ -405,7 +407,7 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 			nouveauPts+=desc.listPixel.size();
 		}
 		
-		if ((double)nouveauPts/listPixel.size() > ratioMaj)
+		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
 			value = calcValue(maxX,minX,maxY,minY,listPixel,false);
 	}
 
@@ -422,8 +424,9 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	@Override
 	public AlphaTreeNodeDescriptor clone() {
 		AlphaTreeNodeDescriptorSyntax clone = new AlphaTreeNodeDescriptorSyntax();
-		clone.listPixel = new LinkedList<PointVideo>();
-		clone.listPixel.addAll(this.listPixel);
+//		clone.listPixel = new LinkedList<PointVideo>();
+//		clone.listPixel.addAll(this.listPixel);
+		clone.listPixel = this.listPixel;
 		clone.maxX = this.maxX;
 		clone.maxY = this.maxY;
 		clone.minX = this.minX;

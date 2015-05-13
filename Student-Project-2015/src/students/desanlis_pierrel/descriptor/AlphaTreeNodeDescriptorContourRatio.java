@@ -271,7 +271,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 					fin = true;
 
 			}
-			return podo/(taille_x*taille_y)*100;
+			return (double)podo/(taille_x*taille_y);
 		}
 	}
 	@Override
@@ -282,14 +282,15 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 
 	@Override
 	public String getDescriptorName() {
-		return "AlphaTreeNodeDescriptorContourRatio";
+		return "Contour Ratio";
 	}
 
 	@Override
 	public AlphaTreeNodeDescriptor clone() {
 		AlphaTreeNodeDescriptorContourRatio clone = new AlphaTreeNodeDescriptorContourRatio();
-		clone.listPixel = new LinkedList<PointVideo>();
-		clone.listPixel.addAll(this.listPixel);
+//		clone.listPixel = new LinkedList<PointVideo>();
+//		clone.listPixel.addAll(this.listPixel);
+		clone.listPixel = this.listPixel;
 		clone.maxX = this.maxX;
 		clone.maxY = this.maxY;
 		clone.minX = this.minX;

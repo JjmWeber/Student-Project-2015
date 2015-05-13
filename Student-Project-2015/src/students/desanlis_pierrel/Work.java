@@ -30,7 +30,7 @@ public class Work {
 		
 		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 12),lena); //Kmeans !!!
 //		System.out.println("Fin kmeans");
-	AlphaTreeNodeDescriptorSyntax.init(32, 32, 5, 0.25,"C:\\Users\\Jean Marie\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
+		AlphaTreeNodeDescriptorSyntax.init(32, 32, 10, 5, 0.25,"C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
 //		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
 		
 // a essayer avant -> reduire le nombre de couleur intelligement avec des kmeans (commencer par trouver l'algo)
@@ -47,12 +47,13 @@ public class Work {
 		//lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 3),lena);
 		ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptors = new ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> ();
 		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
-		//cutDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
+		
 		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();
 		//filterDescriptors.add(AlphaTreeNodeDescriptorSurfaceRatio.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorSR.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorArea.class);
+		//filterDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
 		long t = System.currentTimeMillis();
