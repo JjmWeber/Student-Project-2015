@@ -11,6 +11,7 @@ import main.alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorHeightWidthRatio;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorOmega;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
+import main.alphaTree.ui.AlphaTreeView;
 import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.algorithms.edge.Sobel;
 import fr.unistra.pelican.algorithms.histogram.ContrastStretch;
@@ -19,12 +20,13 @@ import fr.unistra.pelican.algorithms.segmentation.KMeans;
 import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToColorByMeanValue;
 import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 import fr.unistra.pelican.gui.FileChooserToolBox;
+import students.desanlis_pierrel.alphaTree.ui.AlphaTreeViewWekaTrainer;
 import students.desanlis_pierrel.descriptor.*;
 
 
 public class Work {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InstantiationException, IllegalAccessException {
 		ByteImage lena = (ByteImage)ImageLoader.exec(FileChooserToolBox.openOpenFileChooser(null).getAbsolutePath());
 		
 		
@@ -49,10 +51,10 @@ public class Work {
 		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
 		
 		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();
-		//filterDescriptors.add(AlphaTreeNodeDescriptorSurfaceRatio.class);
-		filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
-		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
-		filterDescriptors.add(AlphaTreeNodeDescriptorArea.class);
+//		//filterDescriptors.add(AlphaTreeNodeDescriptorSurfaceRatio.class);
+//		filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
+//		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
+//		filterDescriptors.add(AlphaTreeNodeDescriptorArea.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
@@ -60,6 +62,8 @@ public class Work {
 		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Alpha-tree creation time : "+t+"ms");
-		AlphaTreeViewer.exec(result);
+//		AlphaTreeViewer.exec(result);
+		AlphaTreeViewWekaTrainer.path = "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\corpusWeka.crp";
+		AlphaTreeViewWekaTrainer aTV = new AlphaTreeViewWekaTrainer(result);
 	}
 }

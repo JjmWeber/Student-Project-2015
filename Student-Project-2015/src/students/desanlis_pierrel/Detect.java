@@ -29,7 +29,7 @@ public class Detect {
 		int[][] result = new int[img.xdim][img.ydim];
 		//		Viewer2D.exec(resultImg);
 
-//		img = LabelsToColorByMeanValue.exec(KMeans.exec(img, 12),img); //Kmeans
+		//		img = LabelsToColorByMeanValue.exec(KMeans.exec(img, 12),img); //Kmeans
 
 		AlphaTreeNodeDescriptorSyntax.init(32, 32, 10, 5, 0.25,"C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
 		//		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
@@ -50,12 +50,12 @@ public class Detect {
 		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
 
 		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();		
-		//		filterDescriptors.add(AlphaTreeNodeDescriptorSurfaceRatio.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorSurfaceRatio.class);
 		filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
 		filterDescriptors.add(AlphaTreeNodeDescriptorArea.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
 
 		double[] minFilteringValues = new double[filterDescriptors.size()];
@@ -65,7 +65,7 @@ public class Detect {
 		for (int i = 0 ; i < filterDescriptors.size() ; i++){
 			if (filterDescriptors.get(i).getName().compareTo(AlphaTreeNodeDescriptorSurfaceRatio.class.getName()) == 0){
 				minFilteringValues[i] = 0.0;
-				maxFilteringValues[i] = 1.0;
+				maxFilteringValues[i] = 0.5;
 			}
 			else if (filterDescriptors.get(i).getName().compareTo(AlphaTreeNodeDescriptorHeightWidthRatio.class.getName()) == 0){
 				minFilteringValues[i] = 0.1;
@@ -73,7 +73,7 @@ public class Detect {
 			}
 			else if (filterDescriptors.get(i).getName().compareTo(AlphaTreeNodeDescriptorSyntax.class.getName()) == 0){
 				minFilteringValues[i] = 0.0;
-				maxFilteringValues[i] = 5.0;
+				maxFilteringValues[i] = 12.0;
 			}
 			else if (filterDescriptors.get(i).getName().compareTo(AlphaTreeNodeDescriptorArea.class.getName()) == 0){
 				minFilteringValues[i] = 100.0;
@@ -85,7 +85,7 @@ public class Detect {
 			}
 			else if (filterDescriptors.get(i).getName().compareTo(AlphaTreeNodeDescriptorContourRatio.class.getName()) == 0){
 				minFilteringValues[i] = 0.0;
-				maxFilteringValues[i] = 100.0;
+				maxFilteringValues[i] = 10.0;
 			}
 			else
 				System.out.println("ERREUR: descripteur inconnu");
