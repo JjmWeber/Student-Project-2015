@@ -43,13 +43,14 @@ public class AlphaTreeViewWekaTrainer extends AlphaTreeView{
 
 	@Override
 	public void mouseClicked(MouseEvent e){
+		System.out.println("Début ajout zone");
 		IntegerImage img = this.getSegmentedImage();
 		int val = img.getPixelXYInt(e.getX(), e.getY()); //Entier représentant la zone
 		if (val != -1){
 			FileWriter writer;
 			try {
 				writer = new FileWriter(path, true);			
-				String line = "";
+				String lstPoint = "";
 				int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
 				LinkedList<Integer> listX = new LinkedList<Integer>();
 				LinkedList<Integer> listY = new LinkedList<Integer>();
@@ -68,22 +69,23 @@ public class AlphaTreeViewWekaTrainer extends AlphaTreeView{
 								maxY = y;
 						}
 
-				line += (maxX - minX + 1) + " ";
-				line += (maxY - minY + 1) + " ";
+				lstPoint += (maxX - minX + 1) + " ";
+				lstPoint += (maxY - minY + 1) + " ";
+				//lstPoint += listX.size() + " ";
 				while (listX.size() > 0){ //Ecriture de la liste des points qui compose la zone
-					line += (listX.removeFirst() - minX) + " ";
-					line += (listY.removeFirst() - minY) + " ";
+					lstPoint += (listX.removeFirst() - minX) + " ";
+					lstPoint += (listY.removeFirst() - minY) + " ";
 				}
 
 				if(e.getButton() == MouseEvent.BUTTON1) //Oui
-					line += "1\n";
+					lstPoint += "1\n";
 
 				if(e.getButton() == MouseEvent.BUTTON3) //Non
-					line += "0\n";
+					lstPoint += "0\n";
 				
-				writer.write(line);
+				writer.write(lstPoint);
 				writer.close();
-				System.out.println("Zone ajouté");
+				System.out.println("Zone ajouté " + lstPoint.length());
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
