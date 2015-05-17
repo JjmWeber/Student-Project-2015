@@ -26,7 +26,7 @@ public class AlphaTreeNodeDescriptorPerceptronWeka extends AlphaTreeNodeFilterDe
 	private int nouveauPts = 0;
 	private double value = 0;
 	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>();
-
+	private static Instances data;
 
 	public static String corpusToARFF(String path, int taille_x, int taille_y){
 		String arrfPath = path + ".arff";
@@ -90,7 +90,7 @@ public class AlphaTreeNodeDescriptorPerceptronWeka extends AlphaTreeNodeFilterDe
 		DataSource source;
 		try {
 			source = new DataSource(corpusARRF);
-			Instances data = source.getDataSet();
+			data = source.getDataSet();
 			if (data.classIndex() == -1)
 				data.setClassIndex(data.numAttributes()-1);
 			classifier.buildClassifier(data);
@@ -129,7 +129,8 @@ public class AlphaTreeNodeDescriptorPerceptronWeka extends AlphaTreeNodeFilterDe
 					zqp[x2][y2] = true;
 			}
 
-			Instance instance = new Instance(taille_x*taille_y + 1);
+			Instance instance = new Instance(data.numAttributes());
+			instance.setDataset(data);
 			int i = 0;
 			for (int x = 0 ; x < taille_x ; x++)
 				for (int y = 0 ; y < taille_y ; y++){

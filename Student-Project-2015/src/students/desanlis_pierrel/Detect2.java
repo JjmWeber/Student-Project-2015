@@ -11,6 +11,7 @@ import main.alphaTree.descriptor.AlphaTreeNodeDescriptorHeightWidthRatio;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorOmega;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import students.desanlis_pierrel.descriptor.AlphaTreeNodeDescriptorArea2;
+import students.desanlis_pierrel.descriptor.AlphaTreeNodeDescriptorContourRatio;
 import students.desanlis_pierrel.descriptor.AlphaTreeNodeDescriptorDecisionTree;
 import students.desanlis_pierrel.descriptor.AlphaTreeNodeDescriptorHeightWidthRatio2;
 import students.desanlis_pierrel.descriptor.AlphaTreeNodeDescriptorPerceptronWeka;
@@ -29,7 +30,7 @@ public class Detect2 {
 		System.out.println("Debut calcul kmeans");
 		img = LabelsToColorByMeanValue.exec(KMeans.exec(img, 12),img); //Kmeans !!!
 		System.out.println("Fin kmeans");
-//		AlphaTreeNodeDescriptorPerceptronWeka.init("C:\\corpusWeka.crp", 10, 10);
+		AlphaTreeNodeDescriptorPerceptronWeka.init("C:\\corpusWeka.crp", 10, 10);
 //		AlphaTreeNodeDescriptorSyntax.init(32, 32, 10, 5, 0.25,"C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
 		
 		//lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 3),lena);
@@ -42,9 +43,9 @@ public class Detect2 {
 //		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
 		filterDescriptors.add(AlphaTreeNodeDescriptorArea2.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
-//		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptronWeka.class);
+		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptronWeka.class);
 		AlphaTreeNodeDescriptorDecisionTree.init(filterDescriptors, "C:\\corpusWeka.crp");
 		
 		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors2 = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();

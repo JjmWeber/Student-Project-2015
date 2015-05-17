@@ -1,5 +1,6 @@
 package students.desanlis_pierrel.descriptor;
 
+import java.awt.BorderLayout;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,12 +11,14 @@ import java.util.Random;
 
 import weka.classifiers.Evaluation;
 import weka.classifiers.trees.J48;
+import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
+import weka.gui.treevisualizer.PlaceNode2;
+import weka.gui.treevisualizer.TreeVisualizer;
 import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
-
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
 /*
@@ -30,6 +33,7 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 	private int nouveauPts = 0;
 	private double value = 0;
 	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>();
+	private static Instances data;
 
 	private static ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors;
 
@@ -102,7 +106,7 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 		DataSource source;
 		try {
 			source = new DataSource(corpusARRF);
-			Instances data = source.getDataSet();
+			data = source.getDataSet();
 			if (data.classIndex() == -1)
 				data.setClassIndex(data.numAttributes()-1);
 			classifier.buildClassifier(data);
@@ -112,12 +116,45 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		 
+		// display classifier
+		try {
+			TreeVisualizer tv = new TreeVisualizer(null,
+					classifier.graph(),
+					new PlaceNode2());
+			final javax.swing.JFrame jf = 
+					new javax.swing.JFrame("Weka Classifier Tree Visualizer: J48");
+			jf.setSize(500,400);
+			jf.getContentPane().setLayout(new BorderLayout());
+			
+			jf.getContentPane().add(tv, BorderLayout.CENTER);
+			jf.addWindowListener(new java.awt.event.WindowAdapter() {
+				public void windowClosing(java.awt.event.WindowEvent e) {
+					jf.dispose();
+				}
+			});
+			jf.setVisible(true);
+			tv.fitToScreen();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		System.out.println("Fin apprentissage");		
 	}
 
 	public double calcValue(){
 		double value = 0;
-		Instance instance = new Instance(filterDescriptors.size() + 1);
+//		Instance instance = new Instance(filterDescriptors.size() + 1);
+//		FastVector attributes = new FastVector(filterDescriptors.size());
+//		for (int i = 0; i < filterDescriptors.size(); i++)
+//			attributes.addElement(new weka.core.Attribute("desc" + i));
+//		FastVector classValues = new FastVector(1);
+//		classValues.addElement("Yes");
+//		classValues.addElement("No");
+//		attributes.addElement(new weka.core.Attribute("Symbol", classValues));
+//		Instances dataset = new Instances("dataset", attributes, 0);
+//		dataset.setClassIndex(attributes.size() - 1);
+		Instance instance = new Instance(data.numAttributes());
+		instance.setDataset(data); 
 		//Leger manque de temps pour faire de l'heritage propre (un peu honteux ce code)
 		for (int i = 0 ; i < filterDescriptors.size() ; i++){
 			if (filterDescriptors.get(i).getName().compareTo(AlphaTreeNodeDescriptorSurfaceRatio.class.getName()) == 0){
@@ -144,7 +181,7 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 			else
 				System.out.println("ERREUR: filtre inconnu");
 		}
-		
+
 		try {
 			double[] res = classifier.distributionForInstance(instance);
 			value = res[0];
