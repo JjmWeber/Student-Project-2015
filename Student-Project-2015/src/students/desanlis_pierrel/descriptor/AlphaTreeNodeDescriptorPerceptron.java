@@ -52,7 +52,9 @@ public class AlphaTreeNodeDescriptorPerceptron extends AlphaTreeNodeFilterDescri
 	
 	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>();
 
-	
+	public static double calcValueList(LinkedList<PointVideo> listPts){
+		return 0; // Classe pas utilisé, trop lente et peinible de faire un corpus correct
+	}
 	/**
 	 * 
 	 * @param taille_x largeur des images (& zone) en entrée

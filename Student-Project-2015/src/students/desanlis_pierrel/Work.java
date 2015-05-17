@@ -27,11 +27,12 @@ import students.desanlis_pierrel.descriptor.*;
 public class Work {
 
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException {
-//		ByteImage lena = (ByteImage)ImageLoader.exec(FileChooserToolBox.openOpenFileChooser(null).getAbsolutePath());
+		ByteImage lena = (ByteImage)ImageLoader.exec(FileChooserToolBox.openOpenFileChooser(null).getAbsolutePath());
 		
 		
-//		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 12),lena); //Kmeans !!!
+		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 12),lena); //Kmeans !!!
 //		System.out.println("Fin kmeans");
+		AlphaTreeNodeDescriptorPerceptronWeka.init("C:\\corpusWeka.crp", 10, 10);
 //		AlphaTreeNodeDescriptorSyntax.init(32, 32, 10, 5, 0.25,"C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
 //		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
 		
@@ -58,15 +59,15 @@ public class Work {
 		//filterDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
 		//filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
-		
+		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptronWeka.class);
 		long t = System.currentTimeMillis();
-//		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
+		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Alpha-tree creation time : "+t+"ms");
-//		AlphaTreeViewer.exec(result);
-		AlphaTreeViewWekaTrainer.path = "C:\\corpusWeka.crp";
+		AlphaTreeViewer.exec(result);
+//		AlphaTreeViewWekaTrainer.path = "C:\\corpusWeka.crp";
 //		AlphaTreeViewWekaTrainer aTV = new AlphaTreeViewWekaTrainer(result);
-		AlphaTreeNodeDescriptorPerceptronWeka.init("C:\\corpusWeka.crp", 10, 10);
+		
 		System.out.println("Fin");
 	}
 }

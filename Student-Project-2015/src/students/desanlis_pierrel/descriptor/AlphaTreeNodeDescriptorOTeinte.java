@@ -1,5 +1,7 @@
 package students.desanlis_pierrel.descriptor;
 
+import java.util.LinkedList;
+
 import demo.AlphaTreeDemo;
 import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
@@ -19,6 +21,11 @@ public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeFilterDescripto
 	private int valMin;
 	private int valMax;
 	private int oTeinte;	
+	
+	
+	public static double calcValueList(LinkedList<PointVideo> listPts){
+		return 0; //Pas utilisable avec les données du corpus
+	}
 	
 	/**
 	 * @param values Les trois composantes de la couleur

@@ -58,7 +58,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 		nouveauPts++;
 
 		if ((double)nouveauPts/listPixel.size() > ratioMaj){			
-			value = calcValue(); 
+			value = calcValue(listPixel); 
 			if (value < min)
 				min = value;
 			if (value > max)
@@ -94,7 +94,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 
 		if ((double)nouveauPts/listPixel.size() > ratioMaj)
 		{
-			value = calcValue(); 
+			value = calcValue(listPixel); 
 			if (value < min)
 				min = value;
 			if (value > max)
@@ -103,7 +103,12 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 
 	}
 
-	private double calcValue(){
+	public static double calcValueList(LinkedList<PointVideo> listPts){
+		return calcValue(listPts);
+	}
+	
+	private static double calcValue(LinkedList<PointVideo> listPixel){
+		int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
 		if (listPixel.size() == 0)
 			return 0;
 		else
@@ -295,6 +300,8 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 		clone.maxY = this.maxY;
 		clone.minX = this.minX;
 		clone.maxX = this.maxX;
+		clone.value = this.value;
+		clone.nouveauPts = this.nouveauPts;
 		return clone;
 	}
 

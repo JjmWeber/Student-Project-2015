@@ -123,15 +123,18 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 					for(int y2 = 0 ; y2 < image.ydim ; y2++)		
 						if (image.getPixelXYBByte(x2, y2, 0) == 0)
 							list.add(new PointVideo(x2, y2, 0));
-				calcValue(image.xdim-1, 0, image.ydim-1, 0, list, true);
+				calcValue(list, true);
 			}
 		}
 	}
 
 	public AlphaTreeNodeDescriptorSyntax(){}
 
-	//TODO faire du menage dans les parametres inutiles
-	private static int calcValue(int maxX, int minX, int maxY, int minY, LinkedList<PointVideo> listPixel, boolean apprentissage){		
+	public static double calcValueList(LinkedList<PointVideo> listPts){
+		return calcValue(listPts,false);
+	}
+	private static int calcValue(LinkedList<PointVideo> listPixel, boolean apprentissage){		
+		int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
 		Direction direction;
 		String result = "";
 		for (PointVideo p : listPixel){ //TODO trouver pq les valeur se mettent pas a jour
@@ -336,10 +339,6 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 				if (n < val)
 					val = n;
 			}
-			if (val < min)
-				min = val;
-			else if (val > max)
-				max = val;
 			return val;
 		}			
 	}
@@ -382,7 +381,12 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 		listPixel.add(coord);
 		nouveauPts++;
 		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
-			value = calcValue(maxX,minX,maxY,minY,listPixel,false);
+			value = calcValue(listPixel,false);
+		
+		if (value < min)
+			min = value;
+		if (value > max)
+			max = value;
 	}
 
 
@@ -408,7 +412,12 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 		}
 		
 		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
-			value = calcValue(maxX,minX,maxY,minY,listPixel,false);
+			value = calcValue(listPixel,false);
+		
+		if (value < min)
+			min = value;
+		if (value > max)
+			max = value;
 	}
 
 	@Override
@@ -427,6 +436,8 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 //		clone.listPixel = new LinkedList<PointVideo>();
 //		clone.listPixel.addAll(this.listPixel);
 		clone.listPixel = this.listPixel;
+		clone.nouveauPts = this.nouveauPts;
+		clone.value = this.value;
 		clone.maxX = this.maxX;
 		clone.maxY = this.maxY;
 		clone.minX = this.minX;
