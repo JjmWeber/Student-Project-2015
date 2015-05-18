@@ -6,35 +6,26 @@ import main.alphaTree.AlphaTreeBuilder;
 import main.alphaTree.AlphaTreeViewer;
 import main.alphaTree.data.AlphaTree;
 import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptorHeightWidthRatio;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorOmega;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
-import main.alphaTree.ui.AlphaTreeView;
 import fr.unistra.pelican.ByteImage;
-import fr.unistra.pelican.algorithms.edge.Sobel;
-import fr.unistra.pelican.algorithms.histogram.ContrastStretch;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
 import fr.unistra.pelican.algorithms.segmentation.KMeans;
 import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToColorByMeanValue;
-import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 import fr.unistra.pelican.gui.FileChooserToolBox;
-import students.desanlis_pierrel.alphaTree.ui.AlphaTreeViewWekaTrainer;
-import students.desanlis_pierrel.descriptor.*;
 
-
+/*
+ * Class de travail pour faires des tests sur les arbres
+ */
 public class Work {
-
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException {
 		ByteImage lena = (ByteImage)ImageLoader.exec(FileChooserToolBox.openOpenFileChooser(null).getAbsolutePath());
 		
 		
-		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 12),lena); //Kmeans !!!
+		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 6),lena); //Kmeans !!!
 //		System.out.println("Fin kmeans");
-		AlphaTreeNodeDescriptorPerceptronWeka.init("C:\\corpusWeka.crp", 10, 10);
-//		AlphaTreeNodeDescriptorSyntax.init(32, 32, 10, 5, 0.25,"C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\symbols");
-//		AlphaTreeNodeDescriptorPerceptron.init(16, 16, "C:\\Users\\Florian\\git\\Student-Project-2015\\Student-Project-2015\\samples\\perceptron");
+//		AlphaTreeNodeDescriptorPerceptronWeka.init("samples\\corpusWeka.crp", 10, 10);
+//		AlphaTreeNodeDescriptorSyntax.init(32, 32, 10, 5, 0.25,"samples\\symbols");
 		
 // a essayer avant -> reduire le nombre de couleur intelligement avec des kmeans (commencer par trouver l'algo)
 // après avoir essayer => moyen   : si le nombre de centre mobile est faible et a ce moment les descripteur alpha/omega serve a rien (trop d'écart)
@@ -56,16 +47,16 @@ public class Work {
 //		filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 //		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
 //		filterDescriptors.add(AlphaTreeNodeDescriptorArea.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
-		//filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
-		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptronWeka.class);
+//		filterDescriptors.add(AlphaTreeNodeDescriptorOTeinte.class);
+//		filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
+//		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
+//		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptronWeka.class);
 		long t = System.currentTimeMillis();
 		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Alpha-tree creation time : "+t+"ms");
 		AlphaTreeViewer.exec(result);
-//		AlphaTreeViewWekaTrainer.path = "C:\\corpusWeka.crp";
+//		AlphaTreeViewWekaTrainer.path = "samples\\corpusWeka.crp";
 //		AlphaTreeViewWekaTrainer aTV = new AlphaTreeViewWekaTrainer(result);
 		
 		System.out.println("Fin");

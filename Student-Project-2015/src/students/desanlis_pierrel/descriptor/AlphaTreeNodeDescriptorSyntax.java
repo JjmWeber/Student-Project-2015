@@ -5,22 +5,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 
-
-
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import fr.unistra.pelican.BooleanImage;
 import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
 import fr.unistra.pelican.util.PointVideo;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
-import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
-/**
- * 1. On normalise la taille et l'orientation quand j'aurai trouver comment faire
+/*
+ * Ce descripteur réalise une empreinte de la zone et la compare à une base d'empreinte de symbole connus
+ * La valeur de ce descripteur correspond à la plus faible distance de Levenstein trouvé
+ * 1. On normalise la taille de la zone
  * 2. On part du point le plus a gauche a mi-hauteur 
  * 3. On parcours le contour du symbole en affectant une lettre a chaque direction prise (Nord, Nord-Est, Est...)
  * 4. La valeur du descripteur correspond a la ressemblance de la chaine avec une base de symbole
- * 
- *  /!\ Appeler init avant d'utilier le descripteur
  * 
  */
 
@@ -28,7 +26,7 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	private static double min=Double.POSITIVE_INFINITY;
 	private static double max=Double.NEGATIVE_INFINITY;
 
-	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>();
+	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>(); // Point constituant la zone
 
 	//Evite de reparcourir la liste a chaque fois pour connaitre la taille de l'imagie a créer
 	private int minX = Integer.MAX_VALUE;
@@ -36,10 +34,10 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	private int minY = Integer.MAX_VALUE;
 	private int maxY = Integer.MIN_VALUE;
 
-	//Parametre par defaut
-	private int nouveauPts;
+	//Parametres par defaut
+	private int nouveauPts; // nouveaux points depuis le dernier calcule de la valeur
 	private static double ratioMaj = 0.10; // nombre de nouveau pixel avant recalcule
-	private static int rayon = 5; // Rayon du cercle utilise pour determiner le contour
+	private static int rayon = 5; // Rayon du cercle utilisé pour determiner le contour
 	private static int taille_x = 100; //Dimension du carré utilisé pour redimensionner l'image
 	private static int taille_y = 100;
 	private static LinkedList<String> base = new LinkedList<String>();	
@@ -49,13 +47,8 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 	private static ArrayList<PointCercle> listCercle; // liste des points qui compose le cercle (en static et calculer qu'une fois)
 	private enum Direction {haut, bas, gauche, droite};
 
-	/**
-	 * 
-	 * @param x
-	 * @param y
-	 * @param rayon
-	 * @param frequence
-	 * @param dir dossier contenant les symboles a "apprendre"
+	/*
+	 * Initialisation de la base d'empreinte et des paramétres du descripteur
 	 */
 	public static void init (int taille_x, int taille_y, int minPix, int rayon, double ratioMaj, String path){
 		AlphaTreeNodeDescriptorSyntax.taille_x = taille_x;
@@ -72,7 +65,6 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 		y = rayon;
 		AlphaTreeNodeDescriptorSyntax a = new AlphaTreeNodeDescriptorSyntax();
 		listCercle.add(a.new PointCercle(0,-y));
-		//listCercle.add(new PointVideo(0,-y, 0));
 		p = 3-(2*rayon);
 		for (x = 0 ; x <= y ; x++){
 			if (p<0)
@@ -152,7 +144,6 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 		BooleanImage norm = new BooleanImage(taille_x,taille_y,1,1,1);
 		double coeff_x = (double)taille_x/im.getXDim(); 
 		double coeff_y = (double)taille_y/im.getYDim();
-		//Viewer2D.exec(im);
 		for (int x = 0 ; x < taille_x ; x++)
 			for (int y = 0 ; y < taille_y ; y++)
 			{	
@@ -179,11 +170,9 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 		direction = Direction.haut;
 		boolean fin = false;
 		while (!fin){
-			//BooleanImage dbg = new BooleanImage(taille_x,taille_y,1,1,1);
 			avance = false;
 			tourne = false;
 			//Si on peu avancer on avance
-			//(surement moyen de rendre les swtich moins moche)
 			switch (direction) {
 			case haut:
 				if (y > 0 && x >= 0)					
@@ -283,6 +272,7 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 				break;
 			}
 
+			//m.a.j de la distance parcourue
 			if (avance){
 				podo++;
 			}
@@ -315,16 +305,9 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 					}
 				}
 			}
-			//System.out.println(x + " " + y);
 			//Test si on a fini le tour
 			if (x == deb_x && y == deb_y)
 				fin = true;
-
-			//if (x > 0 && y > 0 && x < taille_x && y < taille_y)
-			//dbg.setPixelBoolean(x, y, 0,0,0,true);
-			//Viewer2D.exec(dbg);
-			//System.out.println(result);
-			//System.out.println(x + " " + y + " " + direction);
 		}
 		if (apprentissage){
 			System.out.println(result);
@@ -343,7 +326,7 @@ public class AlphaTreeNodeDescriptorSyntax extends AlphaTreeNodeFilterDescriptor
 		}			
 	}
 	
-	public static int LevenshteinDistance(String str1, String str2){ //http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Java
+	private static int LevenshteinDistance(String str1, String str2){ //http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Java
 		int[][] distance = new int[str1.length() + 1][str2.length() + 1];        
 		 
         for (int i = 0; i <= str1.length(); i++)                                 

@@ -9,17 +9,16 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
 
+import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
+import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import weka.classifiers.Evaluation;
 import weka.classifiers.trees.J48;
-import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.gui.treevisualizer.PlaceNode2;
 import weka.gui.treevisualizer.TreeVisualizer;
 import fr.unistra.pelican.util.PointVideo;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
-import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
 /*
  * Pourquoi s'embeter à chercher les bonnes valeurs de filtre quand Weka pour le faire
@@ -123,7 +122,7 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 					new PlaceNode2());
 			final javax.swing.JFrame jf = 
 					new javax.swing.JFrame("Weka Classifier Tree Visualizer: J48");
-			jf.setSize(500,400);
+			jf.setSize(800,600);
 			jf.getContentPane().setLayout(new BorderLayout());
 			
 			jf.getContentPane().add(tv, BorderLayout.CENTER);

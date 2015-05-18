@@ -2,17 +2,12 @@ package students.desanlis_pierrel.descriptor;
 
 import java.util.LinkedList;
 
-import demo.AlphaTreeDemo;
-import fr.unistra.pelican.util.PointVideo;
-import main.alphaTree.descriptor.AlphaTreeNodeCutDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptorArea;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
+import fr.unistra.pelican.util.PointVideo;
 
-/**
+/*
  * Essai creation de descripteur type Omega basï¿½ sur la teinte 
- * @author Desanlis/Pierrel
- *
  */
 public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeFilterDescriptor {
 	private static int min=Integer.MAX_VALUE;
@@ -20,16 +15,15 @@ public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeFilterDescripto
 	
 	private int valMin;
 	private int valMax;
-	private int oTeinte;	
-	
+	private int oTeinte; //Valeur du descripteur	
 	
 	public static double calcValueList(LinkedList<PointVideo> listPts){
-		return 0; //Pas utilisable avec les données du corpus
+		return 0; //Pas utilisable avec ce type de données
 	}
 	
-	/**
-	 * @param values Les trois composantes de la couleur
-	 * @return La teinte correspondantes dans l'espace HSV
+	/*
+	 *  Prend en parametre les trois composantes de la couleur
+	 *  et retourne la teinte correspondantes dans l'espace HSV
 	 */
 	private int rvb2t(int[] values){
 		int composante_max = 0;
@@ -77,7 +71,6 @@ public class AlphaTreeNodeDescriptorOTeinte extends AlphaTreeNodeFilterDescripto
 			min = oTeinte;
 		if (oTeinte > max)
 			max = oTeinte;
-		
 	}
 
 	@Override

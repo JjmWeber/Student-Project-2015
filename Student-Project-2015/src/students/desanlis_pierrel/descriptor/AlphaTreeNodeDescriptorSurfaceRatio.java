@@ -2,13 +2,13 @@ package students.desanlis_pierrel.descriptor;
 
 import java.util.LinkedList;
 
-import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
+import fr.unistra.pelican.util.PointVideo;
 
 
 /**
- * Pourcentage occupé par les pixels du noeud par rapport a un carré de côté égale au plus grand côté du noeud
+ * Descripteur représentant le pourcentage occupé par les pixels du noeud par rapport au rectangle l'englobant
  */
 
 public class AlphaTreeNodeDescriptorSurfaceRatio extends AlphaTreeNodeFilterDescriptor {
@@ -41,6 +41,7 @@ public class AlphaTreeNodeDescriptorSurfaceRatio extends AlphaTreeNodeFilterDesc
 		return (double)(nb) / surface;
 		
 	}
+	
 	private double getRatio(){
 		int surface;
 		if (maxX-minX > maxY-minY){
@@ -133,5 +134,4 @@ public class AlphaTreeNodeDescriptorSurfaceRatio extends AlphaTreeNodeFilterDesc
 	public double getMax() {		
 		return max;
 	}
-
 }

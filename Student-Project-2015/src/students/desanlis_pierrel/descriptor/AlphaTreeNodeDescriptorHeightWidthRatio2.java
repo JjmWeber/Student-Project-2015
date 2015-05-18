@@ -2,9 +2,13 @@ package students.desanlis_pierrel.descriptor;
 
 import java.util.LinkedList;
 
-import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptorHeightWidthRatio;
+import fr.unistra.pelican.util.PointVideo;
 
+/*
+ * Ajout d'une méthode static au descripteur AlphaTreeNodeDescriptorHeightWidth 
+ * pour permettre son utilisation dans l'arbre de décision
+ */
 public class AlphaTreeNodeDescriptorHeightWidthRatio2 extends AlphaTreeNodeDescriptorHeightWidthRatio{
 	public static double calcValueList(LinkedList<PointVideo> listPts){
 		int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;

@@ -1,21 +1,16 @@
 package students.desanlis_pierrel.descriptor;
 
-import java.util.ArrayList;
-import java.util.Collections;
+
 import java.util.LinkedList;
 
-import javax.swing.text.StyledEditorKit.BoldAction;
-
-import fr.unistra.pelican.BooleanImage;
-import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
-import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
+import fr.unistra.pelican.BooleanImage;
+import fr.unistra.pelican.util.PointVideo;
 
-/**
- * 2. On calcul la longueur du contour
- * 3. La valeur correspond au ratio Longeur du contour/Nombre de pixel
- * 
+/*
+ * 1. On calcul la longueur du contour
+ * 2. La valeur correspond au ratio Longeur du contour/Nombre de pixel de la zone
  */
 public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDescriptor{
 	private static double min=Double.POSITIVE_INFINITY;
@@ -113,7 +108,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 			return 0;
 		else
 		{
-			for (PointVideo p : listPixel){ //TODO trouver pq les valeur se mettent pas a jour
+			for (PointVideo p : listPixel){  //Pour une raison inconnue ces valeurs ne sont pas mise a jour correctement lors de la fusion ou l'ajout d'un pts
 				if (p.x < minX) minX = p.x;
 				if (p.x > maxX) maxX = p.x;
 				if (p.y < minY) minY = p.y;
@@ -148,7 +143,6 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 				avance = false;
 				tourne = false;
 				//Si on peu avancer on avance
-				//(surement moyen de rendre les swtich moins moche)
 				switch (direction) {
 				case haut:
 					if (y > 0 && x >= 0)					
@@ -196,9 +190,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 				default:
 					break;
 				}
-
-
-				// si pas de mur a droite on tourne
+				// Pas de mur a droite on tourne
 				switch (direction) {
 				case haut:
 					if (y < taille_y && y >= 0){
@@ -249,6 +241,7 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 					break;
 				}
 
+				//Mise a jour du nombre de pas
 				if (avance){
 					podo++;
 				}
@@ -319,5 +312,4 @@ public class AlphaTreeNodeDescriptorContourRatio extends AlphaTreeNodeFilterDesc
 	public double getMax() {
 		return max;
 	}
-
 }

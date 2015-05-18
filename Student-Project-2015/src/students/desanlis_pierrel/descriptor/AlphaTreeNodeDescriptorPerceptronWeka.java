@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Random;
 
-import fr.unistra.pelican.util.PointVideo;
 import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 import weka.classifiers.Evaluation;
@@ -15,19 +14,29 @@ import weka.classifiers.functions.MultilayerPerceptron;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
+import fr.unistra.pelican.util.PointVideo;
 
+/*
+ * Descripteur filtre représentant la probabilité que la zone soit image pour le perceptron multicouche de la lib Weka
+ * Une phase d'initialisation avec un corpus créé avec la class AlphaTreeViewWekaTrainer est nécessaire
+ */
 public class AlphaTreeNodeDescriptorPerceptronWeka extends AlphaTreeNodeFilterDescriptor {
-	private static int taille_x, taille_y;
+	private static int taille_x, taille_y; // Dimension de la zone passée en entrée du perceptron
 	private static MultilayerPerceptron classifier = new MultilayerPerceptron();
 	private static double min = Double.MAX_VALUE;
 	private static double max = Double.MIN_VALUE;
-	private static double ratioMaj = 0.10; //% de nouveau pixel avant recalcule
+	private static double ratioMaj = 0.10; //% de nouveaux pixels avant recalcule
 	private static int minPix = 100; //Nb de pixel dans un zone avant de faire la maj.
-	private int nouveauPts = 0;
-	private double value = 0;
-	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>();
+	private int nouveauPts = 0; // Nombre de nouveaux points depuis la dernière maj.
+	private double value = 0; // Valeur du descritpeur
+	private LinkedList<PointVideo> listPixel = new LinkedList<PointVideo>(); //Liste des points de la zone
 	private static Instances data;
 
+	/*
+	 * Cette méthode sert a créer un fichier corpus utilisable par la librairie Weka
+	 * path : chemin vers un corpus créer à l'aide de la librairie Weka
+	 * taille_x/taille_y : dimension de la zone passé en entrée du perceptron
+	 */
 	public static String corpusToARFF(String path, int taille_x, int taille_y){
 		String arrfPath = path + ".arff";
 		try {
@@ -80,6 +89,11 @@ public class AlphaTreeNodeDescriptorPerceptronWeka extends AlphaTreeNodeFilterDe
 		return arrfPath;
 	}
 
+	/*
+	 * Méthode à appeler impérativement avant d'utiliser le perceptron, il s'agit de class qui réalise l'apprentissage
+	 * path : chemin vers un corpus créer avec la class AlphaTreeViewWekaTrainer
+	 * taille_x / taille_y : dimension de la zone passé en entrée du perceptron
+	 */
 	public static void init(String path, int taille_x, int taille_y){
 		System.out.println("Début apprentissage perceptron");
 		AlphaTreeNodeDescriptorPerceptronWeka.taille_x = taille_x;
@@ -210,9 +224,9 @@ public class AlphaTreeNodeDescriptorPerceptronWeka extends AlphaTreeNodeFilterDe
 	@Override
 	public AlphaTreeNodeDescriptor clone() {
 		AlphaTreeNodeDescriptorPerceptronWeka clone = new AlphaTreeNodeDescriptorPerceptronWeka();
-		clone.listPixel = new LinkedList<PointVideo>();
-		clone.listPixel.addAll(this.listPixel);
-//		clone.listPixel = this.listPixel;
+//		clone.listPixel = new LinkedList<PointVideo>();
+//		clone.listPixel.addAll(this.listPixel);
+		clone.listPixel = this.listPixel;
 		clone.nouveauPts = this.nouveauPts;
 		clone.value = this.value;
 		return clone;
@@ -232,5 +246,4 @@ public class AlphaTreeNodeDescriptorPerceptronWeka extends AlphaTreeNodeFilterDe
 	public double getMax() {
 		return max;
 	}
-
 }
