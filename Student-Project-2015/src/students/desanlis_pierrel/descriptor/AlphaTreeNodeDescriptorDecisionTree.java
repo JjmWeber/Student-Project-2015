@@ -115,29 +115,7 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		 
-		// display classifier
-		try {
-			TreeVisualizer tv = new TreeVisualizer(null,
-					classifier.graph(),
-					new PlaceNode2());
-			final javax.swing.JFrame jf = 
-					new javax.swing.JFrame("Weka Classifier Tree Visualizer: J48");
-			jf.setSize(800,600);
-			jf.getContentPane().setLayout(new BorderLayout());
-			
-			jf.getContentPane().add(tv, BorderLayout.CENTER);
-			jf.addWindowListener(new java.awt.event.WindowAdapter() {
-				public void windowClosing(java.awt.event.WindowEvent e) {
-					jf.dispose();
-				}
-			});
-			jf.setVisible(true);
-			tv.fitToScreen();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		System.out.println("Fin apprentissage");		
+		System.out.println("Fin apprentissage J48");		
 	}
 
 	public double calcValue(){
