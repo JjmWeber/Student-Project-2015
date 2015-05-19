@@ -168,14 +168,6 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 	public void addPixel(int[] values, PointVideo coord) {
 		listPixel.add(coord);
 		nouveauPts++;
-		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
-			value = calcValue();
-
-		if (value < min)
-			min = value;
-		if (value > max)
-			max = value;
-
 	}
 
 	@Override
@@ -193,20 +185,11 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 			listPixel.addAll(desc.listPixel);
 			nouveauPts+=desc.listPixel.size();
 		}
-
-		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
-			value = calcValue();
-
-		if (value < min)
-			min = value;
-		if (value > max)
-			max = value;
-
 	}
 
 	@Override
 	public double getValue() {
-		return value;
+		return calcValue();
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import fr.unistra.pelican.ByteImage;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
 import fr.unistra.pelican.algorithms.segmentation.KMeans;
 import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToColorByMeanValue;
+import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 import fr.unistra.pelican.gui.FileChooserToolBox;
 
 /*
@@ -20,9 +21,9 @@ import fr.unistra.pelican.gui.FileChooserToolBox;
 public class Work {
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException {
 		ByteImage lena = (ByteImage)ImageLoader.exec(FileChooserToolBox.openOpenFileChooser(null).getAbsolutePath());
+		Viewer2D.exec(Detect2.exec(lena, "samples\\corpusWeka.crp"));		
 		
-		
-		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 6),lena); //Kmeans !!!
+//		lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 6),lena); //Kmeans !!!
 //		System.out.println("Fin kmeans");
 //		AlphaTreeNodeDescriptorPerceptronWeka.init("samples\\corpusWeka.crp", 10, 10);
 //		AlphaTreeNodeDescriptorSyntax.init(32, 32, 10, 5, 0.25,"samples\\symbols");
@@ -39,10 +40,10 @@ public class Work {
  */
 		
 		//lena = LabelsToColorByMeanValue.exec(KMeans.exec(lena, 3),lena);
-		ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptors = new ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> ();
-		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
-		
-		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();
+//		ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptors = new ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> ();
+//		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
+//		
+//		ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> filterDescriptors = new ArrayList<Class<? extends AlphaTreeNodeFilterDescriptor>> ();
 //		//filterDescriptors.add(AlphaTreeNodeDescriptorSurfaceRatio.class);
 //		filterDescriptors.add(AlphaTreeNodeDescriptorHeightWidthRatio.class);
 //		filterDescriptors.add(AlphaTreeNodeDescriptorSyntax.class);
@@ -51,11 +52,11 @@ public class Work {
 //		filterDescriptors.add(AlphaTreeNodeDescriptorContourRatio.class);
 //		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptron.class);
 //		filterDescriptors.add(AlphaTreeNodeDescriptorPerceptronWeka.class);
-		long t = System.currentTimeMillis();
-		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
-		t=System.currentTimeMillis()-t;
-		System.out.println("Alpha-tree creation time : "+t+"ms");
-		AlphaTreeViewer.exec(result);
+//		long t = System.currentTimeMillis();
+//		AlphaTree result = AlphaTreeBuilder.exec(lena,cutDescriptors, filterDescriptors);
+//		t=System.currentTimeMillis()-t;
+//		System.out.println("Alpha-tree creation time : "+t+"ms");
+//		AlphaTreeViewer.exec(result);
 //		AlphaTreeViewWekaTrainer.path = "samples\\corpusWeka.crp";
 //		AlphaTreeViewWekaTrainer aTV = new AlphaTreeViewWekaTrainer(result);
 		
