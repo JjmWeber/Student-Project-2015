@@ -21,7 +21,7 @@ import weka.gui.treevisualizer.TreeVisualizer;
 import fr.unistra.pelican.util.PointVideo;
 
 /*
- * Pourquoi s'embeter à chercher les bonnes valeurs de filtre quand Weka pour le faire
+ * 
  */
 public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDescriptor{
 	private static J48 classifier = new J48();
@@ -120,19 +120,8 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 
 	public double calcValue(){
 		double value = 0;
-//		Instance instance = new Instance(filterDescriptors.size() + 1);
-//		FastVector attributes = new FastVector(filterDescriptors.size());
-//		for (int i = 0; i < filterDescriptors.size(); i++)
-//			attributes.addElement(new weka.core.Attribute("desc" + i));
-//		FastVector classValues = new FastVector(1);
-//		classValues.addElement("Yes");
-//		classValues.addElement("No");
-//		attributes.addElement(new weka.core.Attribute("Symbol", classValues));
-//		Instances dataset = new Instances("dataset", attributes, 0);
-//		dataset.setClassIndex(attributes.size() - 1);
 		Instance instance = new Instance(data.numAttributes());
 		instance.setDataset(data); 
-		//Leger manque de temps pour faire de l'heritage propre (un peu honteux ce code)
 		for (int i = 0 ; i < filterDescriptors.size() ; i++){
 			if (filterDescriptors.get(i).getName().compareTo(AlphaTreeNodeDescriptorSurfaceRatio.class.getName()) == 0){
 				instance.setValue(i, AlphaTreeNodeDescriptorSurfaceRatio.calcValueList(listPixel));
@@ -179,14 +168,6 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 	public void addPixel(int[] values, PointVideo coord) {
 		listPixel.add(coord);
 		nouveauPts++;
-		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
-			value = calcValue();
-
-		if (value < min)
-			min = value;
-		if (value > max)
-			max = value;
-
 	}
 
 	@Override
@@ -204,20 +185,11 @@ public class AlphaTreeNodeDescriptorDecisionTree extends AlphaTreeNodeFilterDesc
 			listPixel.addAll(desc.listPixel);
 			nouveauPts+=desc.listPixel.size();
 		}
-
-		if ((double)nouveauPts/listPixel.size() > ratioMaj && listPixel.size() > minPix)
-			value = calcValue();
-
-		if (value < min)
-			min = value;
-		if (value > max)
-			max = value;
-
 	}
 
 	@Override
 	public double getValue() {
-		return value;
+		return calcValue();
 	}
 
 	@Override
