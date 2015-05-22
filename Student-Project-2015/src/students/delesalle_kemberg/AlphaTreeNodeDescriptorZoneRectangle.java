@@ -11,8 +11,8 @@ public class AlphaTreeNodeDescriptorZoneRectangle extends AlphaTreeNodeFilterDes
 	private int minY = Integer.MAX_VALUE;
 	private int maxY = Integer.MIN_VALUE;
 	
-	private int centerX = minX;
-	private int centerY = minY;
+	private float centerX = minX;
+	private float centerY = minY;
 	
 	
 	@Override
@@ -53,6 +53,30 @@ public class AlphaTreeNodeDescriptorZoneRectangle extends AlphaTreeNodeFilterDes
 	@Override
 	public String getDescriptorName() {
 		return "Zone Rectangle";
+	}
+
+	public int getMinX() {
+		return minX;
+	}
+
+	public int getMaxX() {
+		return maxX;
+	}
+
+	public int getMinY() {
+		return minY;
+	}
+
+	public int getMaxY() {
+		return maxY;
+	}
+
+	public float getCenterX() {
+		return centerX;
+	}
+
+	public float getCenterY() {
+		return centerY;
 	}
 
 	@Override

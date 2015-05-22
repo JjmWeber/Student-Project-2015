@@ -3,7 +3,6 @@ package students.delesalle_kemberg;
 import java.util.ArrayList;
 
 import main.alphaTree.data.AlphaTreeNode;
-import main.alphaTree.descriptor.AlphaTreeNodeDescriptor;
 import main.alphaTree.descriptor.AlphaTreeNodeFilterDescriptor;
 
 
@@ -33,15 +32,15 @@ public class Word {
 	 */
 	public boolean checkLetter(AlphaTreeNode letter){
 		float y_max_gap_allowed = 2*y_gap_threshold;
-		float x_max_gap_allowed = 2*x_gap_threshold;
+		//float x_max_gap_allowed = 2*x_gap_threshold;
 
 		if(this.letters==null){
 			return true;
 		} else {
 			//Compare gaps
 			float y_gap = this.getZoneRectangleDescriptor(letters.get(letters.size()-2)).getCenterY() - this.getZoneRectangleDescriptor(letter).getCenterY();
-			float x_gap = this.getZoneRectangleDescriptor(letters.get(letters.size()-2)).getCenterX() - this.getZoneRectangleDescriptor(letter).getCenterX();
-			if(y_gap <= y_max_gap_allowed && x_gap <= 2*x_max_gap_allowed){
+			//float x_gap = this.getZoneRectangleDescriptor(letters.get(letters.size()-2)).getCenterX() - this.getZoneRectangleDescriptor(letter).getCenterX();
+			if(y_gap <= y_max_gap_allowed){
 				return true;
 
 			}
@@ -78,6 +77,33 @@ public class Word {
 	}
 
 
+	/**
+	 * Re-check the whole word and split into several words if gaps aren't checked anymore
+	 * @return List of words
+	 */
+	public ArrayList<Word> splitWord(){
+		ArrayList<Word> wordList = new ArrayList<Word>();
+		int lastWordLimit = 0;
+		for(int i=1; i<letters.size(); i--){
+			if(this.getZoneRectangleDescriptor(letters.get(i)).getCenterY()-this.getZoneRectangleDescriptor(letters.get(i-1)).getCenterY()>y_gap_threshold){
+				Word w = new Word();
+				for(int j = lastWordLimit ; j<i ; j++){
+					w.addLetter(letters.get(j));
+				}
+				lastWordLimit = i;
+				wordList.add(w);
+			}
+		}
+		
+		//for the last word
+		Word w = new Word();
+		for(int j = lastWordLimit ; j <= letters.size() ; j++ ){
+			w.addLetter(letters.get(j));
+		}
+		wordList.add(w);
+		
+		return wordList;
+	}
 
 
 
