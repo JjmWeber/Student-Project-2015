@@ -21,7 +21,7 @@ public class AlphaTreeDemo {
 		//Image lena = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/lennaGray256.png"); 
 		//Test Color
 		//ByteImage test = (ByteImage)ImageLoader.exec("/home/weber/Documents/git/pelican/samples/lenna512.png");
-		ByteImage test = (ByteImage)ImageLoader.exec("/home/weber/Documents/Images/ICDAR2003/TrialTrain/ryoungt_03.09.2002/PICT0042.JPG");
+		ByteImage test = (ByteImage)ImageLoader.exec("C:/Users/Thomas/pelican/samples/foot.png");
 		
 		ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> cutDescriptors = new ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> ();
 		cutDescriptors.add(AlphaTreeNodeDescriptorOmega.class);
