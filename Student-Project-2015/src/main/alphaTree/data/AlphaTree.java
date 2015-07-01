@@ -50,6 +50,11 @@ public class AlphaTree {
 	private int numberOfLeaves;
 	
 	/**
+	 * Indicates if the alpha-tree represents a video or not
+	 */
+	private boolean isVideo;
+	
+	/**
 	 * Max Alpha
 	 */
 	private int maxAlpha=0;
@@ -60,6 +65,7 @@ public class AlphaTree {
 		this.cCImage=cCImage;
 		this.cutDescriptorList=cutDescriptorList;
 		this.filterDescriptorList=filterDescriptorList;
+		isVideo = (originalImage.getTDim()!=1);
 		numberOfLeaves=cCImage.getNumberOfUsedLabels();
 		nodes = new ArrayList<AlphaTreeNode> ();
 	}
@@ -88,30 +94,14 @@ public class AlphaTree {
 		return maxAlpha;
 	}
 	
-	public double[] getMaxCutDescriptorValues()
-	{
-		double[] maxValues = new double[cutDescriptorList.size()];
-		for(int i=0;i<cutDescriptorList.size();i++)
-		{
-			maxValues[i]=getRoot().cutDescriptors[i].getValue();
-		}		
-		return maxValues;
-	}
-	
-	//TODO : Reimplement because filtering descriptors can be non croissant
-	public double[] getMaxFilterDescriptorValues()
-	{
-		double[] maxValues = new double[filterDescriptorList.size()];
-		for(int i=0;i<filterDescriptorList.size();i++)
-		{
-			maxValues[i]=getRoot().filterDescriptors[i].getValue();
-		}		
-		return maxValues;
-	}
-	
 	public IntegerImage getCCImage()
 	{
 		return cCImage;		
+	}
+	
+	public boolean isVideo()
+	{
+		return isVideo;
 	}
 	
 	public ArrayList<Class<? extends AlphaTreeNodeCutDescriptor>> getCutDescriptorList()

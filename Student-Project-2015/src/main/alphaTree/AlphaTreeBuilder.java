@@ -14,6 +14,8 @@ import fr.unistra.pelican.Image;
 import fr.unistra.pelican.IntegerImage;
 import fr.unistra.pelican.PelicanException;
 import fr.unistra.pelican.algorithms.segmentation.flatzones.ColorFlatZones;
+import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToRandomColors;
+import fr.unistra.pelican.algorithms.visualisation.ViewerVideo;
 import fr.unistra.pelican.util.Point4D;
 import fr.unistra.pelican.util.PointVideo;
 import fr.unistra.pelican.util.neighbourhood.Neighbourhood4D;
@@ -73,6 +75,11 @@ public class AlphaTreeBuilder extends Algorithm {
 	private int currentAlpha;
 	
 	/**
+	 * Indicates if the image is a video
+	 */
+	private boolean isVideo=false;
+	
+	/**
 	 * Alpha-Connections between leaves node
 	 */
 	ArrayList<ArrayList<AlphaEdge>> alphaConnections;
@@ -87,10 +94,12 @@ public class AlphaTreeBuilder extends Algorithm {
 	public void launch() throws AlgorithmException {
 		//Init variables
 		currentAlpha=0;
+		if(inputImage.tdim>1)
+			isVideo=true;
 		//If grey level converts input image to color image
 		if(inputImage.bdim==1)
 		{
-			ByteImage temp = new ByteImage(inputImage.xdim,inputImage.ydim,1,1,3);
+			ByteImage temp = new ByteImage(inputImage.xdim,inputImage.ydim,1,inputImage.tdim,3);
 			for(int b=0;b<3;b++)
 			{
 				temp.setImage4D(inputImage, b, Image.B);
@@ -107,7 +116,10 @@ public class AlphaTreeBuilder extends Algorithm {
 		//First, we compute the CC
 		IntegerImage connectedComponents;
 		long t=System.currentTimeMillis();
-		connectedComponents = ColorFlatZones.exec(inputImage, Neighbourhood4D.get8Neighboorhood());
+		if(!isVideo)
+			connectedComponents = ColorFlatZones.exec(inputImage, Neighbourhood4D.get8Neighboorhood());
+		else
+			connectedComponents = ColorFlatZones.exec(inputImage, Neighbourhood4D.get10TemporalNeighboorhood());
 		t=System.currentTimeMillis()-t;
 		System.out.println("Connected components computed in "+t+"ms.");
 		//Create the Alpha-Tree
@@ -122,7 +134,10 @@ public class AlphaTreeBuilder extends Algorithm {
 		}
 		//Third, compute alpha link between adjacent CCs
 		t=System.currentTimeMillis();
-		computeAdjacentEdgesAndInitDescriptors(inputImage,connectedComponents);
+		if(!isVideo)
+			computeAdjacentEdgesAndInitDescriptors(inputImage,connectedComponents);
+		else
+			computeAdjacentEdgesAndInitDescriptorsVideo(inputImage,connectedComponents);
 		t=System.currentTimeMillis()-t;
 		System.out.println("Adjacent Edges computed in "+t+"ms ("+currentNbNodes+" nodes).");
 		//Fourth, let's compute the different Alpha Level
@@ -288,6 +303,102 @@ public class AlphaTreeBuilder extends Algorithm {
 					
 				}
 			}
+		for(ArrayList<AlphaEdge> aAE : existingAdjacentEdges)
+		{
+			for(AlphaEdge edge : aAE)
+			{
+				alphaConnections.get(edge.alpha).add(edge);
+			}
+		}
+	}
+	
+	/**
+	 * This method computes edges between adjacent CC. It also init descriptors values.
+	 * 
+	 * Same as computeAdjacentEdgesAndInitDescriptors method but for video data
+	 * 
+	 * @param inputImage
+	 * @param cC
+	 */
+	private void computeAdjacentEdgesAndInitDescriptorsVideo(Image inputImage,IntegerImage cC) {
+		int yDim=cC.ydim;
+		int xDim=cC.xdim;
+		int tDim=cC.tdim;
+		Point4D[] semiNeighbourhood = Neighbourhood4D.getSemi10TemporalNeighboorhood();
+		for(Point4D q : semiNeighbourhood)
+		{
+			q.setIndex(xDim, yDim, 1, tDim);
+		}
+		//AlreadyComputedAlphaEdge
+		ArrayList<ArrayList<AlphaEdge>> existingAdjacentEdges = new ArrayList<ArrayList<AlphaEdge>>(currentNbNodes);
+		for(int i=0;i<currentNbNodes;i++)
+		{
+			existingAdjacentEdges.add(new ArrayList<AlphaEdge>());
+		}
+		//Init alphaConnections data structure
+		alphaConnections = new ArrayList<ArrayList<AlphaEdge>>();
+		for(int alpha=0;alpha<256;alpha++)
+		{
+			alphaConnections.add(new ArrayList<AlphaEdge>());
+		}
+		//compute alpha edges
+		int index=0;
+		int coloredIndex=0;
+		for(int t=0;t<tDim;t++)
+			for(int y=0;y<yDim;y++)
+				for(int x=0;x<xDim;x++,index++,coloredIndex+=3)
+				{
+					AlphaTreeNode node1=alphaTree.getNode(cC.getPixelInt(index));
+					int[] currentPixelValues = inputImage.getVectorPixelByte(coloredIndex);
+					//For node's descriptor's initialization
+					node1.addPixel(currentPixelValues, new PointVideo(x,y,t));
+					for(Point4D q : semiNeighbourhood)
+					{
+						if(x+q.x >= 0 && x+q.x < xDim && y+q.y >= 0 && y+q.y < yDim&& t+q.t >= 0 && t+q.t < tDim)
+						{
+							AlphaTreeNode node2=alphaTree.getNode(cC.getPixelInt(index+q.index));
+							int alpha=-1;
+							for(int b=0;b<3;b++)
+							{
+								int localAlpha=Math.abs(currentPixelValues[b]-inputImage.getPixelByte(coloredIndex+(q.index*3)+b));
+								if(localAlpha>alpha)
+								{
+									alpha=localAlpha;
+								}
+							}
+
+							if(node1!=node2 && alpha>0)
+							{
+								if(node1.getId()>node2.getId())
+								{
+									AlphaTreeNode pivot = node1;
+									node1=node2;
+									node2=pivot;
+								}
+								boolean edgeAlreadyExist=false;
+								ArrayList<AlphaEdge> aAE = existingAdjacentEdges.get(node1.getId());
+								for(AlphaEdge edge : aAE)
+								{
+									if(edge.node2.getId()==node2.getId())
+									{
+										edgeAlreadyExist=true;
+										if(alpha<edge.alpha)
+										{
+											edge.alpha=alpha;
+										}
+										break;
+									}
+								}							
+								if(!edgeAlreadyExist)
+								{
+									alphaConnections.get(alpha).add(new AlphaEdge(node1,node2,alpha));
+								}
+							}
+
+						}
+
+					}
+				}
 		for(ArrayList<AlphaEdge> aAE : existingAdjacentEdges)
 		{
 			for(AlphaEdge edge : aAE)
