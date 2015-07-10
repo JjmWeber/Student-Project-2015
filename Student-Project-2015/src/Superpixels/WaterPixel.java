@@ -1,4 +1,4 @@
-package superPixels;
+package Superpixels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,9 +19,9 @@ import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
  * Implementation of Watershed superpixels
  * 
  * 
- * V. Machairas, E. Decencière, T. Walter
+ * V. Machairas, E. Decenciï¿½re, T. Walter
  * Waterpixels : superpixels based on the watershed transformation
- * 978-1-4799-5751-4/14/$31.00 ©2014 IEEE
+ * 978-1-4799-5751-4/14/$31.00 ï¿½2014 IEEE
  * 
  * @author Jonathan Weber, Thomas Delesalle
  */

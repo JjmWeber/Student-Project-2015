@@ -1,4 +1,4 @@
-package superPixels;
+package Superpixels;
 
 
 import fr.unistra.pelican.Image;
