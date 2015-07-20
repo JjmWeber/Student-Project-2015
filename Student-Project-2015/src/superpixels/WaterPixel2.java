@@ -2,6 +2,7 @@ package superpixels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.DoubleImage;
@@ -12,6 +13,10 @@ import fr.unistra.pelican.algorithms.conversion.XYZToLAB;
 import fr.unistra.pelican.algorithms.morphology.gray.GrayAreaClosing;
 import fr.unistra.pelican.algorithms.morphology.gray.GrayAreaOpening;
 import fr.unistra.pelican.algorithms.morphology.vectorial.gradient.MultispectralEuclideanGradient;
+import fr.unistra.pelican.algorithms.segmentation.MarkerBasedWatershed;
+import fr.unistra.pelican.algorithms.segmentation.Watershed;
+import fr.unistra.pelican.algorithms.segmentation.labels.DrawFrontiersOnImage;
+import fr.unistra.pelican.algorithms.segmentation.labels.FrontiersFromSegmentation;
 import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
 
@@ -26,7 +31,7 @@ import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
  * @author Jonathan Weber, Thomas Delesalle
  */
 
-public class WaterPixel extends Algorithm {
+public class WaterPixel2 extends Algorithm {
 
 	public Image inputImage;
 	public int numberOfSuperpixels;
@@ -37,7 +42,7 @@ public class WaterPixel extends Algorithm {
 
 
 
-	public WaterPixel()
+	public WaterPixel2()
 	{
 		super();
 		super.inputs="inputImage,numberOfSuperpixels";
@@ -75,9 +80,10 @@ public class WaterPixel extends Algorithm {
 
 		//do we want the slow preprocess step ?
 		if(preprocessStep == 1){
-			System.out.println("size of area closing/opening : "+(step*step/16));
-			gradient = GrayAreaOpening.exec(gradient, step*step/16);
-			gradient = GrayAreaClosing.exec(gradient,step*step/16);
+			System.out.println("size of area closing/opening : "+((step*step)/16));
+			gradient = GrayAreaOpening.exec(gradient,(step*step)/16);
+			gradient = GrayAreaClosing.exec(gradient,(step*step)/16);
+
 			Viewer2D.exec(gradient, "gradient picture after closing and opening");
 		}
 
@@ -113,8 +119,10 @@ public class WaterPixel extends Algorithm {
 		//around each core, we now search the minimum of gradient to move our markers there
 		ArrayList<Pixel> minimaList = new ArrayList<Pixel>();
 		ArrayList<Image> puzzle = new ArrayList<Image>();
+		int coreCounter = -1;
 		for(Pixel c : cores)
 		{
+			coreCounter++;
 			//System.out.println("core position = "+"("+c.x+";"+c.y+")");
 			double lowestGradient=Integer.MAX_VALUE;
 			int bestX=0;
@@ -141,41 +149,16 @@ public class WaterPixel extends Algorithm {
 						spatialGradient = 1;
 					}
 
+					//we fill the small image square
+					//System.out.println("mon x = "+(x-step*c.column-1));
+					//System.out.println("mon y = "+(y-step*c.line-1));
+					puzzle.get(coreCounter).setPixelXYDouble(x-(step*c.column-1),y-(step*c.line-1),gradient.getPixelXYBDouble(x, y, 0));
+
 
 					//we update the gradient image with the spatial parameter
 					gradient.setPixelXYDouble(x,y,spatialGradient);
 
-					//treatment of the minima
-					if(spatialGradient < lowestGradient && (Math.abs(c.x-x) < 0.5*margin*step) && (Math.abs(c.y-y) < 0.5*margin*step)){
-						minimaList.clear();
-						minimaList.add(0,new Pixel(x,y));
-						lowestGradient = spatialGradient;
-						bestX = x;
-						bestY = y;
-					}else if(spatialGradient == lowestGradient && (Math.abs(c.x-x) < 0.5*margin*step) && (Math.abs(c.y-y) < 0.5*margin*step)){
-						minimaList.add(new Pixel(x,y));
-					}
 				}
-
-
-			//if there are several minima, we must choose one...
-			if(minimaList.size() > 1){
-				//if the whole cell is totally flat, we force the core to be at the center of the cell
-				if(minimaList.size() == (cellSide*cellSide)){
-					bestX=c.x;
-					bestY=c.y;
-				}else{
-					// RANDOM HERE
-					int magicNumber = (int) (minimaList.size()*Math.random());
-					bestX = minimaList.get(magicNumber).x;
-					bestY = minimaList.get(magicNumber).y;
-					System.out.println("the current cell had "+minimaList.size()+" minima, one has been chosen as our marker, randomly, that's not cool...");
-					// we search the minimum with the highest volume extinction value
-					for(int i=0; i<minimaList.size(); i++){
-						//TO DO
-					}
-				}
-			}
 
 			//we have found our minimum, this will be our marker
 			c.x=bestX;
@@ -204,9 +187,11 @@ public class WaterPixel extends Algorithm {
 			watershedInput.setPixelXYDouble(c.x, c.y, 0);
 		}
 
-		//	for(int i = 0; i < puzzle.size(); i++){
-		//		Viewer2D.exec(puzzle.get(i), "Image square n° "+i);
-		//	}
+			for(int i = 0; i < puzzle.size(); i++){
+				Image miniWater = Watershed.exec(puzzle.get(i));
+				Viewer2D.exec(DrawFrontiersOnImage.exec(puzzle.get(i), FrontiersFromSegmentation.exec(miniWater)),"miniwater n°"+i);
+
+			}
 		outputImage = watershedInput;
 	}
 
@@ -217,7 +202,7 @@ public class WaterPixel extends Algorithm {
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels)
 	{
-		return (IntegerImage) new WaterPixel().process(inputImage, numberOfSuperpixels);
+		return (IntegerImage) new WaterPixel2().process(inputImage, numberOfSuperpixels);
 	}
 
 	/**
@@ -228,12 +213,12 @@ public class WaterPixel extends Algorithm {
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double margin, double k)
 	{
-		return (IntegerImage) new WaterPixel().process(inputImage, numberOfSuperpixels,margin, k);
+		return (IntegerImage) new WaterPixel2().process(inputImage, numberOfSuperpixels,margin, k);
 	}
 
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double margin, double k, int preprocessingStep)
 	{
-		return (IntegerImage) new WaterPixel().process(inputImage, numberOfSuperpixels,margin, k, preprocessingStep);
+		return (IntegerImage) new WaterPixel2().process(inputImage, numberOfSuperpixels,margin, k, preprocessingStep);
 	}
 
 

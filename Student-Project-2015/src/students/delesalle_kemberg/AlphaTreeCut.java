@@ -48,7 +48,7 @@ public class AlphaTreeCut extends Algorithm {
 	public void launch() throws AlgorithmException {
 		this.output=this.input;
 		
-		for(AlphaTreeNode node : output.getNodes()){		
+	/*	for(AlphaTreeNode node : output.getNodes()){		
 			//Parmi les descripteurs du noeud qu'on observe, on cherche le 'Area'
 			for(int i=0 ; i<node.getDescriptors().length ; i++){
 				if(node.getDescriptors()[i] instanceof AlphaTreeNodeDescriptorArea){
@@ -68,7 +68,7 @@ public class AlphaTreeCut extends Algorithm {
 				}
 			}
 			
-		}
+		}*/
 
 	}
 	
