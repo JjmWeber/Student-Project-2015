@@ -2,7 +2,9 @@ package superpixels;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,61 +54,59 @@ public class MyWatershedTest {
 			}
 		}
 
-		//rawlabels keeps the duplicates
+		//rawlabels keeps the duplicates (and indirectly the position of each label) for ulterior use
 		ArrayList<Integer> rawLabels = new ArrayList(listOfLabels);
 
 
-		/*
-		Collections.sort(listOfLabels);
-		for(Integer i : listOfLabels){
-			System.out.println(i);
-		}
-		 */
 
-		//we use a HashSet to delete duplicates in listOfLabels
+
+		//we use a HashSet to delete duplicates in listOfLabels (is it a good idea ?)
 		Set<Integer> temporaryHashSet = new HashSet<>();
 		temporaryHashSet.addAll(listOfLabels);
 		System.out.println("Nombre de label distincts : "+temporaryHashSet.size());
 		listOfLabels.clear();
 		listOfLabels.addAll(temporaryHashSet);
 
-
-		int labelsFrequency[][] = new int[listOfLabels.size()][2];
-
-		//we count the frequency of each label
+		
+		
+		//we count the frequency of each label, results are kept in labelsFrequency
+		//first field contains the label
+		//second field contains the frequency of
+		Integer labelsFrequency[][] = new Integer[listOfLabels.size()][2];
 		for(int i = 0; i < listOfLabels.size(); i++){
-			labelsFrequency[i][0] = listOfLabels.get(i);
-			labelsFrequency[i][1] = Collections.frequency(rawLabels, listOfLabels.get(i));
+			labelsFrequency[i][0] = (Integer) listOfLabels.get(i);
+			labelsFrequency[i][1] = (Integer) Collections.frequency(rawLabels, listOfLabels.get(i));
 		}
+		
+		
 
-		int ultimateCounter = 0;
+		
+		
+
+		int pixelCounter = 0;
 		for(int i= 0; i < listOfLabels.size(); i++){
 			System.out.println("label : "+labelsFrequency[i][0]+", occures "+labelsFrequency[i][1]+" times");
-			ultimateCounter = ultimateCounter + labelsFrequency[i][1];
+			pixelCounter = pixelCounter + labelsFrequency[i][1];
 		}
-
-		System.out.println("ultimateCounter = "+ultimateCounter);
-
-/*
-		int compteurFind = 0;
-		int c = 0;
-
-		for(int y = 0; y < watershededImage.ydim; y++){
-			for(int x = 0; x < watershededImage.xdim; x++){
-				c++;
-				if(watershededImage.getPixelXYInt(0, 0) == rawLabels.get(x+y*watershededImage.ydim)){
-					System.out.println(compteurFind +"pixel de bon label trouvé ! "+x+","+y);
-					compteurFind++;
-				}
-			}
-		}
-		System.out.println("nombre total d'itérations, c++ :"+c);
-*/
-
+		System.out.println("pixels included in our list of labels : "+pixelCounter);
+		System.out.println("Image dimension = "+(watershededImage.ydim*watershededImage.xdim));
+		
+		//now we would like to sort labelsFrequency by frequency...
+		
+		/*PROBLEM HERE
+		 * 
+		 * 
+		 * */
+		
+		
 
 		double end = System.currentTimeMillis();
 		System.out.println("Execution time = "+(end - start)+"ms");
 		System.out.println("test finished");
 	}
+	
+	
+	
+
 
 }
