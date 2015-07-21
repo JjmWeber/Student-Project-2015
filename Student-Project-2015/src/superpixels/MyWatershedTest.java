@@ -31,53 +31,77 @@ public class MyWatershedTest {
 		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/macaws.png");
 		Image gradient =  MultispectralEuclideanGradient.exec(input, FlatStructuringElement2D.createSquareFlatStructuringElement(3));
 		Viewer2D.exec(gradient, "Gradient");
-		
+
 		//pre-treatment
-		gradient = GrayAreaOpening.exec(gradient,70);
-		gradient = GrayAreaClosing.exec(gradient,70);
-		Viewer2D.exec(gradient, "Gradient opened and closed");
-		
+		//gradient = GrayAreaOpening.exec(gradient,1);
+		//gradient = GrayAreaClosing.exec(gradient,1);
+		//Viewer2D.exec(gradient, "Gradient opened and closed");
+
 		Image watershededImage = Watershed.exec(gradient);
 		Viewer2D.exec(watershededImage, "notre segmentation visualisée");
 		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(watershededImage)),"My cute segmentation watershededImage");
 		Viewer2D.exec(LabelsToRandomColors.exec(gradient));
 
-		ArrayList<Integer> labels = new ArrayList<Integer>();
+
+		//we run through the image and put the listOfLabels in the ArrayList listOfLabels
+		ArrayList<Integer> listOfLabels = new ArrayList<Integer>();
 		for(int y = 0; y < watershededImage.ydim; y++){
 			for(int x = 0; x < watershededImage.xdim; x++){
 				//System.out.println("surprise("+x+","+y+") :"+gradient.getPixelXYInt(x, y));
-				labels.add(watershededImage.getPixelXYInt(x, y));
+				listOfLabels.add(watershededImage.getPixelXYInt(x, y));
 			}
 		}
 
+		//rawlabels keeps the duplicates
+		ArrayList<Integer> rawLabels = new ArrayList(listOfLabels);
+
+
 		/*
-		Collections.sort(labels);
-		for(Integer i : labels){
+		Collections.sort(listOfLabels);
+		for(Integer i : listOfLabels){
 			System.out.println(i);
 		}
 		 */
 
-		Set<Integer> listOfLabels = new HashSet<>();
-		listOfLabels.addAll(labels);
-		System.out.println("Nombre de labels : "+listOfLabels.size());
-		ArrayList<Integer> salve = new ArrayList(labels);
-		labels.clear();
-		labels.addAll(listOfLabels);
+		//we use a HashSet to delete duplicates in listOfLabels
+		Set<Integer> temporaryHashSet = new HashSet<>();
+		temporaryHashSet.addAll(listOfLabels);
+		System.out.println("Nombre de label distincts : "+temporaryHashSet.size());
+		listOfLabels.clear();
+		listOfLabels.addAll(temporaryHashSet);
 
+
+		int labelsFrequency[][] = new int[listOfLabels.size()][2];
+
+		//we count the frequency of each label
+		for(int i = 0; i < listOfLabels.size(); i++){
+			labelsFrequency[i][0] = listOfLabels.get(i);
+			labelsFrequency[i][1] = Collections.frequency(rawLabels, listOfLabels.get(i));
+		}
+
+		int ultimateCounter = 0;
+		for(int i= 0; i < listOfLabels.size(); i++){
+			System.out.println("label : "+labelsFrequency[i][0]+", occures "+labelsFrequency[i][1]+" times");
+			ultimateCounter = ultimateCounter + labelsFrequency[i][1];
+		}
+
+		System.out.println("ultimateCounter = "+ultimateCounter);
+
+/*
 		int compteurFind = 0;
 		int c = 0;
-		
+
 		for(int y = 0; y < watershededImage.ydim; y++){
 			for(int x = 0; x < watershededImage.xdim; x++){
 				c++;
-				if(watershededImage.getPixelXYInt(0, 0) == salve.get(x+y*watershededImage.ydim)){
+				if(watershededImage.getPixelXYInt(0, 0) == rawLabels.get(x+y*watershededImage.ydim)){
 					System.out.println(compteurFind +"pixel de bon label trouvé ! "+x+","+y);
 					compteurFind++;
 				}
 			}
 		}
 		System.out.println("nombre total d'itérations, c++ :"+c);
-
+*/
 
 
 		double end = System.currentTimeMillis();
