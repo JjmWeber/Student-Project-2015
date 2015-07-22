@@ -40,22 +40,20 @@ public class MyWatershedTest {
 		//Viewer2D.exec(gradient, "Gradient opened and closed");
 
 		Image watershededImage = Watershed.exec(gradient);
-		Viewer2D.exec(watershededImage, "notre segmentation visualisée");
 		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(watershededImage)),"My cute segmentation watershededImage");
 		Viewer2D.exec(LabelsToRandomColors.exec(gradient));
 
 
-		//we run through the image and put the listOfLabels in the ArrayList listOfLabels
-		ArrayList<Integer> listOfLabels = new ArrayList<Integer>();
+		//we run through the image and put every label in the ArrayList rawLabels
+		ArrayList<Integer> rawLabels = new ArrayList<Integer>();
 		for(int y = 0; y < watershededImage.ydim; y++){
 			for(int x = 0; x < watershededImage.xdim; x++){
-				//System.out.println("surprise("+x+","+y+") :"+gradient.getPixelXYInt(x, y));
-				listOfLabels.add(watershededImage.getPixelXYInt(x, y));
+				rawLabels.add(watershededImage.getPixelXYInt(x, y));
 			}
 		}
 
-		//rawlabels keeps the duplicates (and indirectly the position of each label) for ulterior use
-		ArrayList<Integer> rawLabels = new ArrayList(listOfLabels);
+		//we will  delete duplicates from listOfLabels
+		ArrayList<Integer> listOfLabels = new ArrayList(rawLabels);
 
 
 
@@ -67,46 +65,39 @@ public class MyWatershedTest {
 		listOfLabels.clear();
 		listOfLabels.addAll(temporaryHashSet);
 
-		
-		
-		//we count the frequency of each label, results are kept in labelsFrequency
+
+
+		//we count the frequency of each label using rawLabels and listOfLabels, results are kept in labelsFrequency
 		//first field contains the label
-		//second field contains the frequency of
+		//second field contains the frequency
 		Integer labelsFrequency[][] = new Integer[listOfLabels.size()][2];
 		for(int i = 0; i < listOfLabels.size(); i++){
 			labelsFrequency[i][0] = (Integer) listOfLabels.get(i);
 			labelsFrequency[i][1] = (Integer) Collections.frequency(rawLabels, listOfLabels.get(i));
 		}
-		
-		
 
+		//now we sort labelsFrequency by frequency
+		Arrays.sort(labelsFrequency, new Comparator<Integer[]>() {
+			@Override
+			public int compare(Integer[] s1, Integer[] s2) {
+				Integer num1 = s1[1];
+				Integer num2 = s2[1];
+				return num1-num2;
+			}
+		});
 		
 		
-
-		int pixelCounter = 0;
 		for(int i= 0; i < listOfLabels.size(); i++){
 			System.out.println("label : "+labelsFrequency[i][0]+", occures "+labelsFrequency[i][1]+" times");
-			pixelCounter = pixelCounter + labelsFrequency[i][1];
 		}
-		System.out.println("pixels included in our list of labels : "+pixelCounter);
-		System.out.println("Image dimension = "+(watershededImage.ydim*watershededImage.xdim));
 		
-		//now we would like to sort labelsFrequency by frequency...
-		
-		/*PROBLEM HERE
-		 * 
-		 * 
-		 * */
-		
-		
-
 		double end = System.currentTimeMillis();
 		System.out.println("Execution time = "+(end - start)+"ms");
 		System.out.println("test finished");
 	}
-	
-	
-	
+
+
+
 
 
 }
