@@ -93,38 +93,24 @@ public class WaterPixel2 extends Algorithm {
 
 		// Initialization of the markers in the middle of the cells
 		ArrayList<Pixel> cores = new ArrayList<Pixel>();
-		int superPixelsCounter = 0;
 		int currentLine = 0;
 		int currentColumn = 0;
 		for(int y=step/2;y<yDim;y+=step){
 			for(int x=step/2;x<xDim;x+=step){
 				cores.add(new Pixel(x,y,currentLine,currentColumn));
-				superPixelsCounter++;
 				currentColumn++;
 			}
 			currentLine++;
 			currentColumn = 0;
 		}
-		int lineSize = currentLine;
-		int columnSize = cores.size()/lineSize;
-		System.out.println("line length = "+lineSize);
-		System.out.println("column length = "+columnSize);
-		System.out.println("number of created seeds of waterpixels : "+superPixelsCounter);
 
-
-		//	for(int i = 0; i < cores.size(); i++){
-		//		System.out.println("core n°"+i+", line " +cores.get(i).line+", column "+cores.get(i).column);
-		//	}
-
-		//around each core, we now search the minimum of gradient to move our markers there
-		ArrayList<Pixel> minimaList = new ArrayList<Pixel>();
+		//around each core
 		ArrayList<Image> puzzle = new ArrayList<Image>();
 		int coreCounter = -1;
 		for(Pixel c : cores)
 		{
 			coreCounter++;
 			//System.out.println("core position = "+"("+c.x+";"+c.y+")");
-			double lowestGradient=Integer.MAX_VALUE;
 			int bestX=0;
 			int bestY=0;
 			int yMin=(int) Math.max(0, c.y-0.5*step);
@@ -154,18 +140,10 @@ public class WaterPixel2 extends Algorithm {
 					//System.out.println("mon y = "+(y-step*c.line-1));
 					puzzle.get(coreCounter).setPixelXYDouble(x-(step*c.column-1),y-(step*c.line-1),gradient.getPixelXYBDouble(x, y, 0));
 
-
 					//we update the gradient image with the spatial parameter
 					gradient.setPixelXYDouble(x,y,spatialGradient);
 
 				}
-
-			//we have found our minimum, this will be our marker
-			c.x=bestX;
-			c.y=bestY;
-			c.l=lab.getPixelXYBDouble(bestX, bestY, 0);
-			c.a=lab.getPixelXYBDouble(bestX, bestY, 1);
-			c.b=lab.getPixelXYBDouble(bestX, bestY, 2);
 		}
 
 		//We prepare our future outputImage
@@ -180,18 +158,11 @@ public class WaterPixel2 extends Algorithm {
 				}
 				watershedInput.setPixelXYDouble(x, y,valueWithout0);
 			}
-
-
-		//And now that we are sure there is no more black on watershedInput, we put the markers in black
-		for(Pixel c : cores){
-			watershedInput.setPixelXYDouble(c.x, c.y, 0);
-		}
-
-			for(int i = 0; i < puzzle.size(); i++){
-				Image miniWater = Watershed.exec(puzzle.get(i));
-				Viewer2D.exec(DrawFrontiersOnImage.exec(puzzle.get(i), FrontiersFromSegmentation.exec(miniWater)),"miniwater n°"+i);
-
-			}
+	
+		WatershedsForVolume goutte = new WatershedsForVolume(puzzle);
+			goutte.findVolume();
+			
+		
 		outputImage = watershedInput;
 	}
 

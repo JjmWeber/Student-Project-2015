@@ -21,11 +21,11 @@ public class WaterPixel2Test {
 		System.out.println("WaterPixel2 test is starting...");
 		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/macaws.png");
 		
-		int numberOfSuperpixels = 16;//number of superpixels we want (approximately)
+		int numberOfSuperpixels = 4;//number of superpixels we want (approximately)
 		double margin = 0.8;// the margin to avoid having seeds too close from each other
 		//since we work directly with the spatially regularized gradient the margin is quite useless  =|
 		double k = 0.1;// the bigger is k, the more we enhance spatially regularization
-		int preprocessingStep = 1; //set this value to 1 if you want to add a morphologic preprocessing step
+		int preprocessingStep = 0; //set this value to 1 if you want to add a morphologic preprocessing step
 		
 		Image output = WaterPixel2.exec(input,numberOfSuperpixels,margin,k,preprocessingStep);
 		Viewer2D.exec(output, "watershed input, k = "+k);
