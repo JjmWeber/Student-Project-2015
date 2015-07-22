@@ -30,10 +30,13 @@ public class MyWatershedTest {
 
 
 		System.out.println("test is starting...");
-		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/macaws.png");
+		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/blueyellow.png");
 		Image gradient =  MultispectralEuclideanGradient.exec(input, FlatStructuringElement2D.createSquareFlatStructuringElement(3));
 		Viewer2D.exec(gradient, "Gradient");
 
+		int xDim = gradient.xdim;
+		int yDim = gradient.ydim;
+		
 		//pre-treatment
 		//gradient = GrayAreaOpening.exec(gradient,1);
 		//gradient = GrayAreaClosing.exec(gradient,1);
@@ -49,14 +52,12 @@ public class MyWatershedTest {
 		for(int y = 0; y < watershededImage.ydim; y++){
 			for(int x = 0; x < watershededImage.xdim; x++){
 				rawLabels.add(watershededImage.getPixelXYInt(x, y));
+
 			}
 		}
 
 		//we will  delete duplicates from listOfLabels
 		ArrayList<Integer> listOfLabels = new ArrayList(rawLabels);
-
-
-
 
 		//we use a HashSet to delete duplicates in listOfLabels (is it a good idea ?)
 		Set<Integer> temporaryHashSet = new HashSet<>();
@@ -64,8 +65,6 @@ public class MyWatershedTest {
 		System.out.println("Nombre de label distincts : "+temporaryHashSet.size());
 		listOfLabels.clear();
 		listOfLabels.addAll(temporaryHashSet);
-
-
 
 		//we count the frequency of each label using rawLabels and listOfLabels, results are kept in labelsFrequency
 		//first field contains the label
@@ -80,16 +79,20 @@ public class MyWatershedTest {
 		Arrays.sort(labelsFrequency, new Comparator<Integer[]>() {
 			@Override
 			public int compare(Integer[] s1, Integer[] s2) {
-				Integer num1 = s1[1];
-				Integer num2 = s2[1];
-				return num1-num2;
+				return s2[1]-s1[1];
 			}
 		});
-		
-		
-		for(int i= 0; i < listOfLabels.size(); i++){
-			System.out.println("label : "+labelsFrequency[i][0]+", occures "+labelsFrequency[i][1]+" times");
+
+		int volume = 0;
+		for(int i = 0; i < rawLabels.size();i++){
+			if(rawLabels.get(i).equals(labelsFrequency[1][0])){
+				int x = i%xDim;
+				int y = (i-x)/xDim;
+				volume = volume +Math.abs(255-gradient.getPixelXYByte(x,y));
+			}
 		}
+		System.out.println("volume = "+volume);
+
 		
 		double end = System.currentTimeMillis();
 		System.out.println("Execution time = "+(end - start)+"ms");
