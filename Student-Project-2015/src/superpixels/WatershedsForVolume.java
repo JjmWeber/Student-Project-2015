@@ -34,19 +34,17 @@ public class WatershedsForVolume {
 
 	public void findVolume() {
 
+		int bestLabels[]= new int[puzzle.size()];
+
 
 		for(int pieceCounter = 0; pieceCounter <puzzle.size();pieceCounter++){
-			System.out.println("petit morceau n°"+pieceCounter);
+			//System.out.println("piece n°"+pieceCounter);
+			//Viewer2D.exec(puzzle.get(pieceCounter), "petit morceau n°"+pieceCounter);
 
 			int xDim = puzzle.get(pieceCounter).xdim;
-			int yDim = puzzle.get(pieceCounter).ydim;
-
-			//pre-treatment
-			//puzzle.get(pieceCounter) = GrayAreaOpening.exec(puzzle.get(pieceCounter),1);
-			//puzzle.get(pieceCounter) = GrayAreaClosing.exec(puzzle.get(pieceCounter),1);
-			//Viewer2D.exec(puzzle.get(pieceCounter), "Gradient opened and closed");
 
 			Image watershededImage = Watershed.exec(puzzle.get(pieceCounter));
+			//Viewer2D.exec(DrawFrontiersOnImage.exec(puzzle.get(pieceCounter), FrontiersFromSegmentation.exec(watershededImage)),"petit morceau watersheded n°"+pieceCounter);
 
 			//we run through the image and put every label in the ArrayList rawLabels
 			ArrayList<Integer> rawLabels = new ArrayList<Integer>();
@@ -56,49 +54,75 @@ public class WatershedsForVolume {
 
 				}
 			}
-			System.out.println("rawLabels.size() = "+rawLabels.size());
+			//System.out.println("rawLabels.size() = "+rawLabels.size());
 
-			//we will  delete duplicates from listOfLabels
-			ArrayList<Integer> listOfLabels = new ArrayList(rawLabels);
-			System.out.println("listOfLabels.size() = "+listOfLabels.size());
+
 
 			//we use a HashSet to delete duplicates in listOfLabels (is it a good idea ?)
+			ArrayList<Integer> listOfLabels = new ArrayList(rawLabels);
 			Set<Integer> temporaryHashSet = new HashSet<>();
 			temporaryHashSet.addAll(listOfLabels);
-			System.out.println("Nombre de labels distincts : "+temporaryHashSet.size());
+			//System.out.println("Nombre de labels distincts : "+temporaryHashSet.size());
 			listOfLabels.clear();
 			listOfLabels.addAll(temporaryHashSet);
 
-			//we count the frequency of each label using rawLabels and listOfLabels, results are kept in labelsFrequency
-			//first field contains the label
-			//second field contains the frequency
-			System.out.println("listOfLabels.size() = "+listOfLabels.size());
-			Integer labelsFrequency[][] = new Integer[listOfLabels.size()][2];
+			//we count the frequency of each label using rawLabels and listOfLabels, results are kept in labelsWithFrequency
+			//first field of second column contains the number of the label 
+			//second field of second column contains the frequency
+			//System.out.println("listOfLabels.size() = "+listOfLabels.size());
+			Integer labelsWithFrequency[][] = new Integer[listOfLabels.size()][2];
 			for(int i = 0; i < listOfLabels.size(); i++){
-				labelsFrequency[i][0] = (Integer) listOfLabels.get(i);
-				labelsFrequency[i][1] = (Integer) Collections.frequency(rawLabels, listOfLabels.get(i));
+				labelsWithFrequency[i][0] = (Integer) listOfLabels.get(i);
+				labelsWithFrequency[i][1] = (Integer) Collections.frequency(rawLabels, listOfLabels.get(i));
 			}
 
 
-			
-			//now we sort labelsFrequency by frequency
-			Arrays.sort(labelsFrequency, new Comparator<Integer[]>() {
+
+			//now we sort labelsWithFrequency by frequency
+			Arrays.sort(labelsWithFrequency, new Comparator<Integer[]>() {
 				@Override
 				public int compare(Integer[] s1, Integer[] s2) {
 					return s2[1]-s1[1];
 				}
 			});
 
-			int volume = 0;
-			for(int i = 0; i < rawLabels.size();i++){
-				if(rawLabels.get(i).equals(labelsFrequency[1][0])){
-					int x = i%xDim;
-					int y = (i-x)/xDim;
-					volume = volume +Math.abs(255-puzzle.get(pieceCounter).getPixelXYByte(x,y));
+			//	for(int i = 0; i < listOfLabels.size(); i++){
+			//		System.out.println(labelsWithFrequency[i][1]);
+			//	}
+
+
+			
+			//limitlabel is here to be sure we will not have an indexOutOfBonds with labelsWithFrequency
+			int limitLabel = 0;
+			if(listOfLabels.size() <= 10){
+				limitLabel = listOfLabels.size();
+			}else{
+				limitLabel = 10;
+			}
+			
+			int biggestVolume = 0;
+
+			for(int j = 0; j < limitLabel; j++){//for the most represented labels
+				int volume = 0;
+				for(int i = 0; i < rawLabels.size();i++){// for each pixel of the small image
+					if(rawLabels.get(i).equals(labelsWithFrequency[j][0])){// if the label of the considered pixel is the label we consider now
+						int x = i%xDim;
+						int y = (i-x)/xDim;
+						volume = volume +Math.abs(255-puzzle.get(pieceCounter).getPixelXYByte(x,y));
+					}
+				}
+				if(volume > biggestVolume){
+					biggestVolume = volume;
+					bestLabels[pieceCounter] = labelsWithFrequency[j][0];
 				}
 			}
-			System.out.println("volume n°"+pieceCounter+" = "+volume);
 
+
+			//System.out.println("volume n°"+pieceCounter+" = "+biggestVolume);
+
+		}
+		for(int i = 0; i < puzzle.size();i++){
+			System.out.println("bestLabels n°"+i+" : "+bestLabels[i]);
 		}
 	}
 

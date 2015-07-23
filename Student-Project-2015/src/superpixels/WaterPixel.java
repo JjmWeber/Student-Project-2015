@@ -2,6 +2,7 @@ package superpixels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.DoubleImage;
@@ -103,7 +104,7 @@ public class WaterPixel extends Algorithm {
 		int columnSize = cores.size()/lineSize;
 		System.out.println("line length = "+lineSize);
 		System.out.println("column length = "+columnSize);
-		System.out.println("number of created seeds of waterpixels : "+superPixelsCounter);
+		System.out.println("Effective number of superpixels : "+superPixelsCounter);
 
 
 		//	for(int i = 0; i < cores.size(); i++){

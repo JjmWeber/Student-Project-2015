@@ -56,19 +56,12 @@ public class WaterPixel2 extends Algorithm {
 		int xDim = inputImage.xdim;
 		int yDim = inputImage.ydim;
 
-
-		//print the original picture
-		//Viewer2D.exec(inputImage, "original picture");
-
-		// Convert image to Lab color space
-		Image lab = XYZToLAB.exec(RGBToXYZ.exec(inputImage));
-		//Viewer2D.exec(lab, "picture converted to lab color space");
-
 		// Perform gradient on RGB image
 		Image gradient =  MultispectralEuclideanGradient.exec(inputImage, FlatStructuringElement2D.createSquareFlatStructuringElement(3));
+		Viewer2D.exec(gradient, "gradient picture");
 
 
-		// Compute useful values
+		// Compute and display useful values
 		int step = (int) Math.sqrt(((double)gradient.size())/numberOfSuperpixels);
 		int cellSide = (int) (step*margin);
 		System.out.println("step = " +step);
@@ -76,34 +69,31 @@ public class WaterPixel2 extends Algorithm {
 		System.out.println("k = " +k);
 		System.out.println("number of pixels in one cell = "+(cellSide*cellSide));
 
-		Viewer2D.exec(gradient, "gradient picture");
 
 		//do we want the slow preprocess step ?
 		if(preprocessStep == 1){
 			System.out.println("size of area closing/opening : "+((step*step)/16));
 			gradient = GrayAreaOpening.exec(gradient,(step*step)/16);
 			gradient = GrayAreaClosing.exec(gradient,(step*step)/16);
-
 			Viewer2D.exec(gradient, "gradient picture after closing and opening");
 		}
-
-
-
 
 
 		// Initialization of the markers in the middle of the cells
 		ArrayList<Pixel> cores = new ArrayList<Pixel>();
 		int currentLine = 0;
 		int currentColumn = 0;
+		int superPixelCounter = 0;
 		for(int y=step/2;y<yDim;y+=step){
 			for(int x=step/2;x<xDim;x+=step){
+				superPixelCounter++;
 				cores.add(new Pixel(x,y,currentLine,currentColumn));
 				currentColumn++;
 			}
 			currentLine++;
 			currentColumn = 0;
 		}
-
+		System.out.println("Effective number of superpixels : "+superPixelCounter);
 		//around each core
 		ArrayList<Image> puzzle = new ArrayList<Image>();
 		int coreCounter = -1;
@@ -121,7 +111,6 @@ public class WaterPixel2 extends Algorithm {
 			//we create a small image square
 			IntegerImage square = new IntegerImage(Math.abs(xMin-xMax)+1,Math.abs(yMin-yMax)+1, 1, 1, 1);
 			puzzle.add(square);
-
 			for(int y = yMin; y < yMax; y++)
 				for(int x = xMin; x < xMax; x++)
 				{//for each pixel of the current cell
@@ -135,13 +124,13 @@ public class WaterPixel2 extends Algorithm {
 						spatialGradient = 1;
 					}
 
-					//we fill the small image square
-					//System.out.println("mon x = "+(x-step*c.column-1));
-					//System.out.println("mon y = "+(y-step*c.line-1));
-					puzzle.get(coreCounter).setPixelXYDouble(x-(step*c.column-1),y-(step*c.line-1),gradient.getPixelXYBDouble(x, y, 0));
-
 					//we update the gradient image with the spatial parameter
 					gradient.setPixelXYDouble(x,y,spatialGradient);
+
+					//we fill the small image square
+					puzzle.get(coreCounter).setPixelXYDouble(x-(step*c.column-1),y-(step*c.line-1),gradient.getPixelXYBDouble(x, y, 0));
+
+
 
 				}
 		}
@@ -149,8 +138,8 @@ public class WaterPixel2 extends Algorithm {
 		//We prepare our future outputImage
 		IntegerImage watershedInput = new IntegerImage(gradient);
 
-		//watershedInput is slightly whiter than gradient (+1)
-		for(int y = 0; y < watershedInput.ydim; y++)
+		/*	//watershedInput is slightly whiter than gradient (+1)
+		for(int y = 0; y < watershedInput.ydim; y++){
 			for(int x = 0; x < watershedInput.xdim; x++){
 				double valueWithout0 = (double) (watershedInput.getPixelXYByte(x,y)+1)/256;
 				if(valueWithout0 > 1){
@@ -158,11 +147,13 @@ public class WaterPixel2 extends Algorithm {
 				}
 				watershedInput.setPixelXYDouble(x, y,valueWithout0);
 			}
-	
-		WatershedsForVolume goutte = new WatershedsForVolume(puzzle);
-			goutte.findVolume();
-			
+		}*/
 		
+		
+		WatershedsForVolume goutte = new WatershedsForVolume(puzzle);
+		goutte.findVolume();
+
+
 		outputImage = watershedInput;
 	}
 

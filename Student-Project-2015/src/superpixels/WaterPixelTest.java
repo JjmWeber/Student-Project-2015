@@ -22,8 +22,8 @@ public class WaterPixelTest {
 		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/macaws.png");
 		
 		int numberOfSuperpixels = 40;//number of superpixels we want (approximately)
+		System.out.println("number of wanted superPixels : "+numberOfSuperpixels);
 		double margin = 0.8;// the margin to avoid having seeds too close from each other
-		//since we work directly with the spatially regularized gradient the margin is quite useless  =|
 		double k = 0.1;// the bigger is k, the more we enhance spatially regularization
 		int preprocessingStep = 0; //set this value to 1 if you want to add a morphologic preprocessing step
 		
