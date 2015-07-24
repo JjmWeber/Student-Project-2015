@@ -36,9 +36,10 @@ public class GraphImage {
 		}
 
 
-		System.out.println("Initialisation terminée");
 		System.out.println("xDim = "+xDim);
 		System.out.println("yDim = "+yDim);
+
+		//and now the general case
 		for(int y = 1; y < yDim; y++){
 			for(int x = 0; x < xDim; x++){
 				double l = inputImage.getPixelXYBDouble(x, y, 0);
@@ -48,12 +49,14 @@ public class GraphImage {
 				nextLine[x] = p;
 				nodes.add(new Node(currentLine[x]));
 				if(x < xDim - 1){
+					System.out.println(x+y*xDim+1);// error here
 					edges.add(new Edge(x+y*xDim,x+y*xDim+1,computePixelDistance(currentLine[x],currentLine[x+1])));
-					//	System.out.println("liaison à droite"+"("+x+", "+y+")"+" weight = "+computePixelDistance(currentLine[x],currentLine[x+1]));
+					//System.out.println("liaison à droite"+"("+x+", "+y+")"+" weight = "+computePixelDistance(currentLine[x],currentLine[x+1]));
 				}
 				if(y < yDim){
+					System.out.println(x+(y+1)*xDim);// error here
 					edges.add(new Edge(x+y*xDim,x+(y+1)*xDim,computePixelDistance(currentLine[x],nextLine[x])));
-					//	System.out.println("liaison en dessous"+"("+x+", "+y+")"+" weight = "+computePixelDistance(currentLine[x],nextLine[x]));
+					//System.out.println("liaison en dessous"+"("+x+", "+y+")"+" weight = "+computePixelDistance(currentLine[x],nextLine[x]));
 				}
 			}
 			System.arraycopy(nextLine, 0, currentLine, 0, xDim);
@@ -62,11 +65,6 @@ public class GraphImage {
 		for(int x = 0; x < xDim; x++){
 			nodes.add(new Node(currentLine[x]));
 		}
-
-
-		/*	for(int i = 0; i <nodes.size(); i++){
-			nodes.get(i).pixels.get(0).displayPixel();
-		}*/
 	}
 
 
@@ -132,21 +130,13 @@ public class GraphImage {
 		}
 
 		public void displayEdge(){
-			System.out.println("("+start+","+end+")"+", weight = "+weight);
+			System.out.println("edge("+start+","+end+")"+", weight = "+weight);
 		}
-		
+
 	}
-
-
-
 
 	public double computePixelDistance(Pixel p1, Pixel p2){
 		double pixelDifference = Math.sqrt((p1.l-p2.l)*(p1.l-p2.l)+(p1.a-p2.a)*(p1.a-p2.a)+(p1.b-p2.b)*(p1.b-p2.b));
 		return pixelDifference;
 	}
-
-
-
-
-
 }

@@ -15,7 +15,7 @@ public class EGBSuperpixelTest {
 
 		double start = System.currentTimeMillis();
 		System.out.println("EGBSuperpixel test starting...");
-		Image input = ImageLoader.exec("samples/macaws.png");
+		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/macaws.png");
 		Image image = EGBSuperpixel.exec(input);
 		//Viewer2D.exec(image);
 		double end = System.currentTimeMillis();

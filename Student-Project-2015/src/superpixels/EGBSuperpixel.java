@@ -60,41 +60,40 @@ public class EGBSuperpixel extends Algorithm {
 		Collections.sort(myGraphImage.edges);
 
 		System.out.println("sorted");
-		System.out.println("We now start to work on the graph");
-		
-		computeGraph(myGraphImage);
-		
-		
-		/**
-		 * Given an undirected graph with real-valued edge weights, returns a
-		 * spanning tree of that graph with minimum weight.
-		 *
-		 * @param graph The graph whose MST should be computed.
-		 * @return An MST of that graph.
-		 */
 
+		//	for(int i = 0; i < myGraphImage.edges.size();i++){
+		//		myGraphImage.edges.get(i).displayEdge();
+		//	}
+
+		System.out.println("We now start to work on the graph");
+
+		computeGraph(myGraphImage);
 	}
 
 
-	public static GraphImage computeGraph(GraphImage graph) {
+	public GraphImage computeGraph(GraphImage graph) {
 		System.out.println("entering the computeGraph method");
-		Pixel forest[] = new Pixel[graph.nodes.size()];
+		int father[] = new int[graph.nodes.size()];
 		for(int i = 0; i < graph.nodes.size(); i++){
-			forest[i] = graph.nodes.get(i).pixels.get(0);//we should decide between Pixels or integers here...
+			father[i] = graph.nodes.get(i).pixels.get(0).id;
 		}
-		MyUF myCuteUF = new MyUF(graph.nodes.size());
-		
+
+		MyUF myCuteUF = new MyUF(father);
+
+		//for each edge of our graph
+		for(int i = 0; i < graph.edges.size(); i++){
+			//graph.edges.get(i).displayEdge();
+			if(myCuteUF.FindWithCompression(graph.edges.get(i).start) == myCuteUF.FindWithCompression(graph.edges.get(i).end)){
+				//System.out.println("the considered pixels are already in the same zone");
+			}
+		}
+
+
+
 		System.out.println("done...");
 		return graph;
 
 	}
-
-
-
-
-
-
-
 
 	/**
 	 * @param inputImage  image to compute
