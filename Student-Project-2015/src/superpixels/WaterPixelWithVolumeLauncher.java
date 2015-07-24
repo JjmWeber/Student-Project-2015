@@ -17,9 +17,9 @@ public class WaterPixelWithVolumeLauncher {
 		System.out.println("WaterPixelWithVolume segmentation is starting...");
 		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
 		
-		int numberOfSuperpixels = 150;//number of wanted superpixels (approximately)
+		int numberOfSuperpixels = 500;//number of wanted superpixels (approximately)
 		System.out.println("number of wanted superPixels : "+numberOfSuperpixels);
-		double margin = 0.1;// the margin to avoid having seeds too close from each other
+		double margin = 0.8;// the margin to avoid having seeds too close from each other
 		double k = 0.3;// the bigger is k, the more we enhance spatially regularization
 		int preprocessingStep = 0; //set this value to 1 if you want to add a morphologic preprocessing step
 		

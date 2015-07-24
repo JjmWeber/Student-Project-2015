@@ -118,20 +118,14 @@ public class WaterPixelWithVolume extends Algorithm {
 
 					//we fill the small image square
 					puzzle.get(coreCounter).setPixelXYDouble(x-(step*c.column-1),y-(step*c.line-1),gradient.getPixelXYBDouble(x, y, 0));
-
-
-
 				}
 		}
 
 		//We prepare our future outputImage
 		IntegerImage watershedInput = new IntegerImage(gradient);
 
-
-
-
 		WatershedsForVolume goutte = new WatershedsForVolume(puzzle);
-		int[][] seedsCoordinates = goutte.findSeedsWithVolume();
+		int[][] seedsCoordinates = goutte.findSeedsWithVolume(margin);
 
 
 		//	for(int i = 0; i < cores.size();i++){
@@ -156,12 +150,22 @@ public class WaterPixelWithVolume extends Algorithm {
 			}
 		}
 
+		
+		//if we want to visualize our markers
+		for(int y = 0; y < gradient.ydim; y++){
+			for(int x = 0; x < gradient.xdim; x++){
+				gradient.setPixelXYDouble(x, y,1);
+			}
+		}
+		for(int i = 0; i < cores.size();i++){
+			gradient.setPixelXYDouble(seedsCoordinates[i][0],seedsCoordinates[i][1],0);
+		}
+		Viewer2D.exec(gradient, "positions of our "+superPixelCounter+" markers, margin = "+margin);
 
 		//we set our markers at 0
 		for(int i = 0; i < cores.size();i++){
 			watershedInput.setPixelXYDouble(seedsCoordinates[i][0],seedsCoordinates[i][1],0);
 		}
-
 
 		outputImage = watershedInput;
 	}
@@ -179,7 +183,8 @@ public class WaterPixelWithVolume extends Algorithm {
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
-	 * @param m compactness parameter
+	 * @param margin margin parameter
+	 * @param k spatially regularization parameter
 	 * @return  Waterpixel superpixels image
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double margin, double k)

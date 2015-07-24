@@ -21,7 +21,7 @@ public class WatershedsForVolume {
 
 	}
 
-	public int[][] findSeedsWithVolume() {
+	public int[][] findSeedsWithVolume(double margin) {
 
 		int bestLabels[]= new int[puzzle.size()];
 
@@ -29,24 +29,22 @@ public class WatershedsForVolume {
 
 		for(int pieceCounter = 0; pieceCounter <puzzle.size();pieceCounter++){
 			//System.out.println("piece n°"+pieceCounter);
-			//Viewer2D.exec(puzzle.get(pieceCounter), "petit morceau n°"+pieceCounter);
+			//Viewer2D.exec(puzzle.get(pieceCounter), "piece n°"+pieceCounter);
 
 			int xDim = puzzle.get(pieceCounter).xdim;
 
 			Image watershededImage = Watershed.exec(puzzle.get(pieceCounter));
-			//Viewer2D.exec(DrawFrontiersOnImage.exec(puzzle.get(pieceCounter), FrontiersFromSegmentation.exec(watershededImage)),"petit morceau watersheded n°"+pieceCounter);
+			//Viewer2D.exec(DrawFrontiersOnImage.exec(puzzle.get(pieceCounter), FrontiersFromSegmentation.exec(watershededImage))," watersheded piece n°"+pieceCounter);
 
 			//we run through the image and put every label in the ArrayList rawLabels
 			ArrayList<Integer> rawLabels = new ArrayList<Integer>();
-			for(int y = 0; y < watershededImage.ydim; y++){
-				for(int x = 0; x < watershededImage.xdim; x++){
+			for(int y = 0; y < (int) watershededImage.ydim*margin; y++){
+				for(int x = 0; x < (int) watershededImage.xdim*margin; x++){
 					rawLabels.add(watershededImage.getPixelXYInt(x, y));
 
 				}
 			}
 			//System.out.println("rawLabels.size() = "+rawLabels.size());
-
-
 
 			//we use a HashSet to delete duplicates in listOfLabels (is it a good idea ?)
 			ArrayList<Integer> listOfLabels = new ArrayList(rawLabels);
@@ -67,7 +65,6 @@ public class WatershedsForVolume {
 			}
 
 
-
 			//now we sort labelsWithFrequency by frequency
 			Arrays.sort(labelsWithFrequency, new Comparator<Integer[]>() {
 				@Override
@@ -84,10 +81,10 @@ public class WatershedsForVolume {
 
 			//limitlabel is here to be sure we will not have an indexOutOfBonds with labelsWithFrequency
 			int limitLabel = 0;
-			if(listOfLabels.size() <= 10){
+			if(listOfLabels.size() <= 5){
 				limitLabel = listOfLabels.size();
 			}else{
-				limitLabel = 10;
+				limitLabel = 5;
 			}
 
 			int biggestVolume = 0;
