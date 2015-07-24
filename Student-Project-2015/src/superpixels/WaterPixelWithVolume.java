@@ -1,22 +1,13 @@
 package superpixels;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
-import fr.unistra.pelican.DoubleImage;
 import fr.unistra.pelican.Image;
 import fr.unistra.pelican.IntegerImage;
-import fr.unistra.pelican.algorithms.conversion.RGBToXYZ;
-import fr.unistra.pelican.algorithms.conversion.XYZToLAB;
 import fr.unistra.pelican.algorithms.morphology.gray.GrayAreaClosing;
 import fr.unistra.pelican.algorithms.morphology.gray.GrayAreaOpening;
 import fr.unistra.pelican.algorithms.morphology.vectorial.gradient.MultispectralEuclideanGradient;
-import fr.unistra.pelican.algorithms.segmentation.MarkerBasedWatershed;
-import fr.unistra.pelican.algorithms.segmentation.Watershed;
-import fr.unistra.pelican.algorithms.segmentation.labels.DrawFrontiersOnImage;
-import fr.unistra.pelican.algorithms.segmentation.labels.FrontiersFromSegmentation;
 import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
 
@@ -31,7 +22,7 @@ import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
  * @author Jonathan Weber, Thomas Delesalle
  */
 
-public class WaterPixel2 extends Algorithm {
+public class WaterPixelWithVolume extends Algorithm {
 
 	public Image inputImage;
 	public int numberOfSuperpixels;
@@ -42,7 +33,7 @@ public class WaterPixel2 extends Algorithm {
 
 
 
-	public WaterPixel2()
+	public WaterPixelWithVolume()
 	{
 		super();
 		super.inputs="inputImage,numberOfSuperpixels";
@@ -101,8 +92,6 @@ public class WaterPixel2 extends Algorithm {
 		{
 			coreCounter++;
 			//System.out.println("core position = "+"("+c.x+";"+c.y+")");
-			int bestX=0;
-			int bestY=0;
 			int yMin=(int) Math.max(0, c.y-0.5*step);
 			int yMax=(int) Math.min(yDim-1, c.y+0.5*step);
 			int xMin=(int) Math.max(0, c.x-0.5*step);
@@ -138,7 +127,25 @@ public class WaterPixel2 extends Algorithm {
 		//We prepare our future outputImage
 		IntegerImage watershedInput = new IntegerImage(gradient);
 
-		/*	//watershedInput is slightly whiter than gradient (+1)
+
+
+
+		WatershedsForVolume goutte = new WatershedsForVolume(puzzle);
+		int[][] seedsCoordinates = goutte.findSeedsWithVolume();
+
+
+		//	for(int i = 0; i < cores.size();i++){
+		//		System.out.println("seed n°"+i+" : "+"("+seedsCoordinates[i][0]+";"+seedsCoordinates[i][1]+")");
+		//	}
+
+		//we re-adjust the coordinates to our big image dimensions
+		for(int i = 0; i < cores.size(); i++){
+			seedsCoordinates[i][0] = seedsCoordinates[i][0]+cores.get(i).column*step;
+			seedsCoordinates[i][1] = seedsCoordinates[i][1]+cores.get(i).line*step;
+		}
+
+
+		//watershedInput is slightly whiter than gradient (+1)
 		for(int y = 0; y < watershedInput.ydim; y++){
 			for(int x = 0; x < watershedInput.xdim; x++){
 				double valueWithout0 = (double) (watershedInput.getPixelXYByte(x,y)+1)/256;
@@ -147,11 +154,13 @@ public class WaterPixel2 extends Algorithm {
 				}
 				watershedInput.setPixelXYDouble(x, y,valueWithout0);
 			}
-		}*/
-		
-		
-		WatershedsForVolume goutte = new WatershedsForVolume(puzzle);
-		goutte.findVolume();
+		}
+
+
+		//we set our markers at 0
+		for(int i = 0; i < cores.size();i++){
+			watershedInput.setPixelXYDouble(seedsCoordinates[i][0],seedsCoordinates[i][1],0);
+		}
 
 
 		outputImage = watershedInput;
@@ -164,7 +173,7 @@ public class WaterPixel2 extends Algorithm {
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels)
 	{
-		return (IntegerImage) new WaterPixel2().process(inputImage, numberOfSuperpixels);
+		return (IntegerImage) new WaterPixelWithVolume().process(inputImage, numberOfSuperpixels);
 	}
 
 	/**
@@ -175,39 +184,23 @@ public class WaterPixel2 extends Algorithm {
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double margin, double k)
 	{
-		return (IntegerImage) new WaterPixel2().process(inputImage, numberOfSuperpixels,margin, k);
+		return (IntegerImage) new WaterPixelWithVolume().process(inputImage, numberOfSuperpixels,margin, k);
 	}
 
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double margin, double k, int preprocessingStep)
 	{
-		return (IntegerImage) new WaterPixel2().process(inputImage, numberOfSuperpixels,margin, k, preprocessingStep);
+		return (IntegerImage) new WaterPixelWithVolume().process(inputImage, numberOfSuperpixels,margin, k, preprocessingStep);
 	}
 
 
 	private class Pixel
 	{
-		public double l;
-		public double a;
-		public double b;
 		public int x;
 		public int y;
 		public int line;
 		public int column;
 
-		public Pixel(double l, double a, double b, int x, int y)
-		{
-			this.l=l;
-			this.a=a;
-			this.b=b;
-			this.x=x;
-			this.y=y;
-		}
 
-		public Pixel(int x, int y)
-		{
-			this.x=x;
-			this.y=y;
-		}
 		public Pixel(int x, int y, int line, int column){
 			this.x=x;
 			this.y=y;

@@ -8,19 +8,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import fr.unistra.pelican.Image;
-import fr.unistra.pelican.IntegerImage;
-import fr.unistra.pelican.algorithms.io.ImageLoader;
-import fr.unistra.pelican.algorithms.io.ImageSave;
-import fr.unistra.pelican.algorithms.morphology.gray.GrayAreaClosing;
-import fr.unistra.pelican.algorithms.morphology.gray.GrayAreaOpening;
-import fr.unistra.pelican.algorithms.morphology.vectorial.gradient.MultispectralEuclideanGradient;
-import fr.unistra.pelican.algorithms.segmentation.MarkerBasedWatershed;
 import fr.unistra.pelican.algorithms.segmentation.Watershed;
-import fr.unistra.pelican.algorithms.segmentation.labels.DrawFrontiersOnImage;
-import fr.unistra.pelican.algorithms.segmentation.labels.FrontiersFromSegmentation;
-import fr.unistra.pelican.algorithms.segmentation.labels.LabelsToRandomColors;
-import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
-import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
+
 
 public class WatershedsForVolume {
 
@@ -32,10 +21,11 @@ public class WatershedsForVolume {
 
 	}
 
-	public void findVolume() {
+	public int[][] findSeedsWithVolume() {
 
 		int bestLabels[]= new int[puzzle.size()];
 
+		int[][] seedsCoordinates = new int[puzzle.size()][2];
 
 		for(int pieceCounter = 0; pieceCounter <puzzle.size();pieceCounter++){
 			//System.out.println("piece n°"+pieceCounter);
@@ -91,7 +81,7 @@ public class WatershedsForVolume {
 			//	}
 
 
-			
+
 			//limitlabel is here to be sure we will not have an indexOutOfBonds with labelsWithFrequency
 			int limitLabel = 0;
 			if(listOfLabels.size() <= 10){
@@ -99,7 +89,7 @@ public class WatershedsForVolume {
 			}else{
 				limitLabel = 10;
 			}
-			
+
 			int biggestVolume = 0;
 
 			for(int j = 0; j < limitLabel; j++){//for the most represented labels
@@ -118,12 +108,39 @@ public class WatershedsForVolume {
 			}
 
 
+			//we now select our seed for this piece of image
+			int bestX = 0;
+			int bestY = 0;
+			double lowerValue = Double.MAX_VALUE;
+			for(int i = 0; i < rawLabels.size();i++){// for each pixel of the small image
+				if(rawLabels.get(i).equals(bestLabels[pieceCounter])){// if the label of the considered pixel is the best label
+					int x = i%xDim;
+					int y = (i-x)/xDim;
+					if((puzzle.get(pieceCounter).getPixelXYByte(x, y)) < lowerValue){
+						lowerValue = puzzle.get(pieceCounter).getPixelXYByte(x, y);
+						bestX = x;
+						bestY = y;
+					}
+				}
+			}
+
+			seedsCoordinates[pieceCounter][0] = bestX;
+			seedsCoordinates[pieceCounter][1] = bestY;
+
 			//System.out.println("volume n°"+pieceCounter+" = "+biggestVolume);
 
 		}
-		for(int i = 0; i < puzzle.size();i++){
-			System.out.println("bestLabels n°"+i+" : "+bestLabels[i]);
-		}
+
+		//	for(int i = 0; i < puzzle.size();i++){
+		//		System.out.println("bestLabels n°"+i+" : "+bestLabels[i]);
+		//	}
+
+	/*	for(int i = 0; i < puzzle.size();i++){
+			System.out.println("seed n°"+i+" : "+"("+seedsCoordinates[i][0]+";"+seedsCoordinates[i][1]+")");
+		}*/
+
+
+		return seedsCoordinates;
 	}
 
 
