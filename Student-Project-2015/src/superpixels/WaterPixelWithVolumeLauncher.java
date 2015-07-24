@@ -24,14 +24,14 @@ public class WaterPixelWithVolumeLauncher {
 		int preprocessingStep = 0; //set this value to 1 if you want to add a morphologic preprocessing step
 		
 		Image markedImage = WaterPixelWithVolume.exec(input,numberOfSuperpixels,margin,k,preprocessingStep);
-		Viewer2D.exec(markedImage, "watershed input, k = "+k);
+		//Viewer2D.exec(markedImage, "watershed input, k = "+k);
 		
 		Image finalResult = MarkerBasedWatershed.exec(markedImage);
 		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(finalResult)),"Waterpixels with volume : margin = "+margin+" , k = "+k+" preprocess step : "+preprocessingStep);
 		
 		double end = System.currentTimeMillis();
 		System.out.println("Execution time = "+(end - start)+"ms");
-		System.out.println("WaterPixel2 test finished");
+		System.out.println("WaterPixelWithVolume segmentation finished");
 
 
 		

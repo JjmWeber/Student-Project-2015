@@ -11,15 +11,19 @@ import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 public class SLICTest {
 
 	public static void main(String[] args) {
+		double start = System.currentTimeMillis();
 		System.out.println("SLIC test starting...");
 
-		Image input = ImageLoader.exec("samples/macaws.png");
-		int numberOfSuperPixels = 200;
+		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
+		int numberOfSuperPixels = 500;
 		int m = 20;
 		
 		Image output = SLIC.exec(input, numberOfSuperPixels,m);
 		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(output)),"SLIC : "+numberOfSuperPixels+" superpixels, m = "+m);
 	//	Viewer2D.exec(current);
+		
+		double end = System.currentTimeMillis();
+		System.out.println("Execution time = "+(end - start)+"ms");
 
 	}
 }
