@@ -19,7 +19,8 @@ public class WaterPixelTest {
 
 		
 		System.out.println("WaterPixel test is starting...");
-		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/macaws.png");
+		//Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/macaws.png");
+		Image input = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/macaws.png");
 		
 		int numberOfSuperpixels = 200;//number of superpixels we want (approximately)
 		System.out.println("number of wanted superPixels : "+numberOfSuperpixels);
