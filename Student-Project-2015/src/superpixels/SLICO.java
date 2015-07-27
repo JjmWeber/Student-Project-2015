@@ -116,8 +116,8 @@ public class SLICO extends Algorithm {
 						double b=lab.getPixelXYBDouble(x,y,2);
 						double dc=Math.sqrt((l-c.l)*(l-c.l)+(a-c.a)*(a-c.a)+(b-c.b)*(b-c.b));
 						double ds=Math.sqrt((x-c.x)*(x-c.x)+(y-c.y)*(y-c.y));
-						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/step)*(ds/step)));
-						if(dc > maxMc){
+						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/step)*(ds/step)));   //TODO FORMULE PAS BONNE
+						if(dc > maxMc){    //TODO pas ici qu'il faut calculer mc
 							maxMc = dc;
 						}
 
@@ -161,7 +161,10 @@ public class SLICO extends Algorithm {
 				clusters.get(i).l=lab.getPixelXYBDouble(newX, newY, 0);
 				clusters.get(i).a=lab.getPixelXYBDouble(newX, newY, 1);
 				clusters.get(i).b=lab.getPixelXYBDouble(newX, newY, 2);
-			}			
+			}
+			
+			//TODO calculer mc et ms pour chaque cluster ici !
+			
 			System.out.println("Loop "+loop+" done ! Residual error : "+error);
 		} while (error!=0);
 

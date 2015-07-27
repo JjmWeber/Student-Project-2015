@@ -12,10 +12,10 @@ public class SLICLauncher {
 	public static void main(String[] args) {
 		System.out.println("SLIC and SLICO tests starting...");
 
-		//Image input = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/curious.png");
-		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
+		Image input = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/curious.png");
+		//Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
 		int numberOfSuperPixels = 500;
-		int m = 20;
+		int m = 70;
 		
 		//SLIC (m parameter to tune)
 		double start = System.currentTimeMillis();
