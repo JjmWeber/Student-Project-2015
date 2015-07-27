@@ -15,8 +15,8 @@ public class WaterPixelWithVolumeLauncher {
 
 		
 		System.out.println("WaterPixelWithVolume segmentation is starting...");
-		//Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
-		Image input = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/curious.png");
+		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
+		//Image input = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/curious.png");
 
 		Viewer2D.exec(input,"Input Image");
 		
