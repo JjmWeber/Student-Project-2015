@@ -15,16 +15,16 @@ import fr.unistra.pelican.algorithms.morphology.vectorial.gradient.Multispectral
 import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
 
 /**
- * Implementation of SLIC superpixels
+ * Implementation of SLICOrphanPixels superpixels
  * 
  * Radhakrishna Achanta, Appu Shaji, Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine SÃ¼sstrunk,
- *  SLIC Superpixels Compared to State-of-the-art Superpixel Methods, 
+ *  SLICOrphanPixels Superpixels Compared to State-of-the-art Superpixel Methods, 
  * IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 34, num. 11, p. 2274 - 2282, May 2012.
  * 
  * @author Jonathan Weber
  */
 
-public class SLIC extends Algorithm {
+public class SLICOrphanPixels extends Algorithm {
 
 	public Image inputImage;
 	public int numberOfSuperpixels;
@@ -34,7 +34,7 @@ public class SLIC extends Algorithm {
 
 	public IntegerImage superpixels;
 
-	public SLIC()
+	public SLICOrphanPixels()
 	{
 		super();
 		super.inputs="inputImage,numberOfSuperpixels";
@@ -162,6 +162,46 @@ public class SLIC extends Algorithm {
 		} while (error!=0);
 
 
+		
+		
+		//labels store the number of pixels for each label
+		int i = -1;
+		int[] labels = new int[clusters.size()];
+		for(int y=0;y<yDim;y++)
+			for(int x=0;x<xDim;x++){
+				i++;
+				int labelValue = label.getPixelXYInt(x,y);
+				labels[labelValue]++;
+			}
+		//our satanic union
+		int smallSuperPixelCounter = 0;
+		for(int j = 0; j < labels.length; j++){
+			//System.out.println("labels["+j+"] = "+ labels[j]);
+			if(labels[j] < 500){
+				smallSuperPixelCounter++;
+				for(int y=0;y<yDim;y++)
+					for(int x=0;x<xDim;x++){
+						if(label.getPixelXYInt(x, y) == j){
+							label.setPixelXYInt(x, y, 0);
+						}
+					}
+			}
+		}
+		//now we have a new look on labels
+		for(int y=0;y<yDim;y++)
+			for(int x=0;x<xDim;x++){
+				i++;
+				int labelValue = label.getPixelXYInt(x,y);
+				labels[labelValue]++;
+			}
+		
+		Arrays.sort(labels);
+		for(int l = 0; l < labels.length; l++){
+			System.out.println("number of pixels in label n°"+l+" : "+labels[l]);
+		}
+		System.out.println(smallSuperPixelCounter+ "small superPixels have been detected");
+
+
 		//Segmentation result
 		superpixels = label;
 
@@ -172,22 +212,22 @@ public class SLIC extends Algorithm {
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
-	 * @return  SLIC superpixels image
+	 * @return  SLICOrphanPixels superpixels image
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels)
 	{
-		return (IntegerImage) new SLIC().process(inputImage, numberOfSuperpixels);
+		return (IntegerImage) new SLICOrphanPixels().process(inputImage, numberOfSuperpixels);
 	}
 
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
 	 * @param m compactness parameter
-	 * @return  SLIC superpixels image
+	 * @return  SLICOrphanPixels superpixels image
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double m)
 	{
-		return (IntegerImage) new SLIC().process(inputImage, numberOfSuperpixels,m);
+		return (IntegerImage) new SLICOrphanPixels().process(inputImage, numberOfSuperpixels,m);
 	}
 
 	private class Cluster
