@@ -15,23 +15,23 @@ import fr.unistra.pelican.algorithms.morphology.vectorial.gradient.Multispectral
 import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
 
 /**
- * Implementation of SLICO superpixels (SLIC without parameter)
+ * Implementation of ASLIC superpixels (SLIC without parameter)
  * 
  * Radhakrishna Achanta, Appu Shaji, Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine Süsstrunk,
- *  SLICO Superpixels Compared to State-of-the-art Superpixel Methods, 
+ *  ASLIC Superpixels Compared to State-of-the-art Superpixel Methods, 
  * IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 34, num. 11, p. 2274 - 2282, May 2012.
  * 
  * @author Jonathan Weber
  */
 
-public class SLICO extends Algorithm {
+public class ASLIC extends Algorithm {
 
 	public Image inputImage;
 	public int numberOfSuperpixels;
 
 	public IntegerImage superpixels;
 
-	public SLICO()
+	public ASLIC()
 	{
 		super();
 		super.inputs="inputImage,numberOfSuperpixels";
@@ -58,7 +58,7 @@ public class SLICO extends Algorithm {
 		for(int y=step/2;y<yDim;y+=step)
 			for(int x=step/2;x<xDim;x+=step)
 			{
-				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y,20));
+				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y,20,10));
 			}
 
 		//Move cluster center to lowest gradient in 3x3 neighbourhood
@@ -115,7 +115,7 @@ public class SLICO extends Algorithm {
 						double b=lab.getPixelXYBDouble(x,y,2);
 						double dc=Math.sqrt((l-c.l)*(l-c.l)+(a-c.a)*(a-c.a)+(b-c.b)*(b-c.b));
 						double ds=Math.sqrt((x-c.x)*(x-c.x)+(y-c.y)*(y-c.y));
-						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/step)*(ds/step)));
+						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/c.ms)*(ds/c.ms)));
 						if(d<distance.getPixelXYDouble(x, y))
 						{
 							distance.setPixelXYDouble(x,y,d);
@@ -157,7 +157,7 @@ public class SLICO extends Algorithm {
 				clusters.get(i).b=lab.getPixelXYBDouble(newX, newY, 2);
 			}
 
-			//now that we have our new centers, we compute the maximal color distance mc for each center
+			//now that we have our new centers, we compute the maximal color distance mc and spatial distance ms for each center
 			for(int y=0;y<yDim;y++)
 				for(int x=0;x<xDim;x++)
 				{
@@ -168,9 +168,13 @@ public class SLICO extends Algorithm {
 						double a=lab.getPixelXYBDouble(x,y,1);
 						double b=lab.getPixelXYBDouble(x,y,2);
 						Cluster c = clusters.get(labelValue);
+						double newDs = Math.sqrt((x-c.x)*(x-c.x)+(y-c.y)*(y-c.y));
 						double newDc = Math.sqrt((l-c.l)*(l-c.l)+(a-c.a)*(a-c.a)+(b-c.b)*(b-c.b));
 						if( newDc > c.mc){
 							c.mc = newDc;
+						}
+						if( newDs > c.ms){
+							c.ms = newDs;
 						}
 					}
 				}
@@ -186,22 +190,22 @@ public class SLICO extends Algorithm {
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
-	 * @return  SLICO superpixels image
+	 * @return  ASLIC superpixels image
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels)
 	{
-		return (IntegerImage) new SLICO().process(inputImage, numberOfSuperpixels);
+		return (IntegerImage) new ASLIC().process(inputImage, numberOfSuperpixels);
 	}
 
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
 	 * @param m compactness parameter
-	 * @return  SLICO superpixels image
+	 * @return  ASLIC superpixels image
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double m)
 	{
-		return (IntegerImage) new SLICO().process(inputImage, numberOfSuperpixels,m);
+		return (IntegerImage) new ASLIC().process(inputImage, numberOfSuperpixels,m);
 	}
 
 	private class Cluster
@@ -212,8 +216,9 @@ public class SLICO extends Algorithm {
 		public int x;
 		public int y;
 		public double mc;
+		public double ms;
 
-		public Cluster(double l, double a, double b, int x, int y, int mc)
+		public Cluster(double l, double a, double b, int x, int y, int mc, int ms)
 		{
 			this.l=l;
 			this.a=a;
@@ -221,6 +226,7 @@ public class SLICO extends Algorithm {
 			this.x=x;
 			this.y=y;
 			this.mc=mc;
+			this.ms=ms;
 		}
 	}
 
