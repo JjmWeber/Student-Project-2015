@@ -74,6 +74,9 @@ public class SLICOrphanPixels extends Algorithm {
 				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y));
 			}
 
+		final ArrayList<int[]> finalClustersCenters = new ArrayList<int[]>(clusters.size());
+
+
 		//Move cluster center to lowest gradient in 3x3 neighbourhood
 		for(Cluster c : clusters)
 		{
@@ -166,6 +169,12 @@ public class SLICOrphanPixels extends Algorithm {
 				clusters.get(i).l=lab.getPixelXYBDouble(newX, newY, 0);
 				clusters.get(i).a=lab.getPixelXYBDouble(newX, newY, 1);
 				clusters.get(i).b=lab.getPixelXYBDouble(newX, newY, 2);
+
+				int[] coordinates = new int[2];
+				coordinates[0] = newX;
+				coordinates[1] = newY;
+				finalClustersCenters.add(i,coordinates);
+
 			}			
 			System.out.println("Loop "+loop+" done ! Residual error : "+error);
 		} while (error!=0);
@@ -176,6 +185,12 @@ public class SLICOrphanPixels extends Algorithm {
 		int sizeCriteria = ((xDim*yDim/clusters.size())/4);
 		Connectivity3D con = new FlatConnectivity(label, TrivialConnectivity.getHeightNeighbourhood());
 		IntegerImage labelsMapImage = ConnectedComponentMap.exec(label,con);
+
+		for(int i = 0; i <finalClustersCenters.size();i++ ){
+			System.out.println("x = "+finalClustersCenters.get(i)[0]);
+			System.out.println("y = "+finalClustersCenters.get(i)[1]);
+		}
+
 
 
 		//now we adjust the labelsMapImage to suitable labels
@@ -200,8 +215,8 @@ public class SLICOrphanPixels extends Algorithm {
 			}
 
 
-		
-		
+
+
 
 		//labels store the number of pixels for each connexe component
 		int[] labels = new int[distinctComponents.size()];
@@ -211,7 +226,7 @@ public class SLICOrphanPixels extends Algorithm {
 				labels[labelValue]++;
 			}
 		for(int l = 0; l < labels.length; l++){
-			System.out.println("number of pixels in connexe component n°"+l+" : "+labels[l]);
+			//System.out.println("number of pixels in connexe component n°"+l+" : "+labels[l]);
 		}
 
 		//badLabels contains only the labels of the small components
@@ -240,19 +255,31 @@ public class SLICOrphanPixels extends Algorithm {
 					}
 				}
 		}
-		
-		for(int i = 0; i < badLabels.size(); i++){
-			System.out.println("number of pixels in connexe component n°"+badLabels.get(i)[0]+" : "+badLabels.get(i)[3]);
-			System.out.println("x and y totals : "+badLabels.get(i)[1]+" ; "+badLabels.get(i)[2]);
 
+		//we compute the means for each badLabel
+		for(int i = 0; i < badLabels.size(); i++){
+			badLabels.get(i)[1] = (int) badLabels.get(i)[1]/badLabels.get(i)[3];
+			badLabels.get(i)[2] = (int) badLabels.get(i)[2]/badLabels.get(i)[3];
 		}
-		
-		
+
+		//we compute the distance between our small components and the superpixels
+		for(int i = 0; i < badLabels.size(); i++){
+			for(int j = 0; j < finalClustersCenters.size(); j++){
+				double xDiff = badLabels.get(i)[1]-finalClustersCenters.get(j)[0];
+				double yDiff = badLabels.get(i)[2]-finalClustersCenters.get(j)[1];
+				double d = Math.sqrt(xDiff*xDiff+yDiff*yDiff);
+			}
+		}
+
+
+
+
+
 		//ULTIMATE GOAL HERE
 		//label.setPixelXYInt(x, y, 0);
 		////////////////////////////
-		
-		
+
+
 		/*
 		//now we have a new look on labels
 		for(int y=0;y<yDim;y++)
