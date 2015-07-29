@@ -20,14 +20,21 @@ public class SLICLauncher {
 
 
 		//SLIC (m parameter to tune)
-		double start = System.currentTimeMillis();
+/*		double start = System.currentTimeMillis();
 		Image outputSLIC = SLIC.exec(input, numberOfSuperPixels,m);
 		double end = System.currentTimeMillis();
 		double executionTimeSLIC = end - start;
 		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(outputSLIC)),"SLIC : "+numberOfSuperPixels+" superpixels, m = "+m);
+*/
+		
+		
+		//SLICOrphanPixels (m parameter to tune)
+		double start = System.currentTimeMillis();
+		Image outputSLICOrphanPixels = SLICOrphanPixels.exec(input, numberOfSuperPixels,m);
+		double end = System.currentTimeMillis();
+		double executionTimeSLICOrphanPixels = end - start;
+		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(outputSLICOrphanPixels)),"SLICOrphanPixels : "+numberOfSuperPixels+" superpixels, m = "+m);
 
-
-		System.out.println("SLIC terminated, SLICO is starting");
 
 	/*	//SLICO (no parameter to tune)
 		start = System.currentTimeMillis();
@@ -47,7 +54,7 @@ public class SLICLauncher {
 		
 		
 		
-		System.out.println("Execution time for SLIC = "+executionTimeSLIC+"ms");
+		System.out.println("Execution time for SLIC = "+executionTimeSLICOrphanPixels+"ms");
 
 	//	System.out.println("Execution time for SLICO = "+executionTimeSLICO+"ms");
 

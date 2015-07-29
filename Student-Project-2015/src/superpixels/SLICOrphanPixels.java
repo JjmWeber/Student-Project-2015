@@ -3,6 +3,8 @@ package superpixels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
@@ -11,7 +13,14 @@ import fr.unistra.pelican.Image;
 import fr.unistra.pelican.IntegerImage;
 import fr.unistra.pelican.algorithms.conversion.RGBToXYZ;
 import fr.unistra.pelican.algorithms.conversion.XYZToLAB;
+import fr.unistra.pelican.algorithms.morphology.connected.ConnectedComponentMap;
 import fr.unistra.pelican.algorithms.morphology.vectorial.gradient.MultispectralEuclideanGradient;
+import fr.unistra.pelican.algorithms.segmentation.labels.DrawFrontiersOnImage;
+import fr.unistra.pelican.algorithms.segmentation.labels.FrontiersFromSegmentation;
+import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
+import fr.unistra.pelican.util.connectivityTrees.connectivity.Connectivity3D;
+import fr.unistra.pelican.util.connectivityTrees.connectivity.FlatConnectivity;
+import fr.unistra.pelican.util.connectivityTrees.connectivity.TrivialConnectivity;
 import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
 
 /**
@@ -161,32 +170,90 @@ public class SLICOrphanPixels extends Algorithm {
 			System.out.println("Loop "+loop+" done ! Residual error : "+error);
 		} while (error!=0);
 
+		///////////////////////////////////////////////////////////////////////
+
+		System.out.println("now we help the poor OrphanPixels");
+		int sizeCriteria = ((xDim*yDim/clusters.size())/4);
+		Connectivity3D con = new FlatConnectivity(label, TrivialConnectivity.getHeightNeighbourhood());
+		IntegerImage labelsMapImage = ConnectedComponentMap.exec(label,con);
+
+
+		//now we adjust the labelsMapImage to suitable labels
+		HashSet<Integer> distinctComponents = new HashSet<Integer>();
+		ArrayList<Integer> correspondanceList = new ArrayList<Integer>();
+		for(int y=0;y<yDim;y++)
+			for(int x=0;x<xDim;x++)
+			{
+				int componentLabelValue = labelsMapImage.getPixelXYInt(x,y);
+				if(distinctComponents.add(componentLabelValue)){
+					correspondanceList.add(componentLabelValue);
+				}
+			}
+		System.out.println("numbers of connexe components : "+distinctComponents.size());
+		for(int y=0;y<yDim;y++)
+			for(int x=0;x<xDim;x++){
+				for(int l = 0; l<correspondanceList.size(); l++){
+					if(labelsMapImage.getPixelXYInt(x,y) == correspondanceList.get(l)){
+						labelsMapImage.setPixelXYInt(x,y,l);
+					}
+				}
+			}
+
 
 		
 		
-		//labels store the number of pixels for each label
-		int i = -1;
-		int[] labels = new int[clusters.size()];
+
+		//labels store the number of pixels for each connexe component
+		int[] labels = new int[distinctComponents.size()];
 		for(int y=0;y<yDim;y++)
 			for(int x=0;x<xDim;x++){
-				i++;
-				int labelValue = label.getPixelXYInt(x,y);
+				int labelValue = labelsMapImage.getPixelXYInt(x,y);
 				labels[labelValue]++;
 			}
-		//our satanic union
-		int smallSuperPixelCounter = 0;
-		for(int j = 0; j < labels.length; j++){
-			//System.out.println("labels["+j+"] = "+ labels[j]);
-			if(labels[j] < 500){
-				smallSuperPixelCounter++;
-				for(int y=0;y<yDim;y++)
-					for(int x=0;x<xDim;x++){
-						if(label.getPixelXYInt(x, y) == j){
-							label.setPixelXYInt(x, y, 0);
-						}
-					}
+		for(int l = 0; l < labels.length; l++){
+			System.out.println("number of pixels in connexe component n°"+l+" : "+labels[l]);
+		}
+
+		//badLabels contains only the labels of the small components
+		//badLabel[0] contains the label number
+		//badLabel[1] contains the x mean
+		//badLabel[2] contains the y mean
+		//badLabel[3] contains the number of pixels
+		ArrayList<int[]> badLabels = new ArrayList<int[]>();
+		for(int i = 0; i < labels.length; i++){
+			if(labels[i] < sizeCriteria){
+				int[] badLabel = new int[4];
+				badLabel[0] = i;
+				badLabel[3] = labels[i];
+				badLabels.add(badLabel);
 			}
 		}
+
+
+
+		for(int i = 0; i < badLabels.size(); i++){
+			for(int y=0;y<yDim;y++)
+				for(int x=0;x<xDim;x++){
+					if(labelsMapImage.getPixelXYInt(x, y) == badLabels.get(i)[0]){
+						badLabels.get(i)[1] += x;
+						badLabels.get(i)[2] += y;
+					}
+				}
+		}
+		
+		for(int i = 0; i < badLabels.size(); i++){
+			System.out.println("number of pixels in connexe component n°"+badLabels.get(i)[0]+" : "+badLabels.get(i)[3]);
+			System.out.println("x and y totals : "+badLabels.get(i)[1]+" ; "+badLabels.get(i)[2]);
+
+		}
+		
+		
+		//ULTIMATE GOAL HERE
+		//label.setPixelXYInt(x, y, 0);
+		////////////////////////////
+		
+		
+		/*
 		//now we have a new look on labels
 		for(int y=0;y<yDim;y++)
 			for(int x=0;x<xDim;x++){
@@ -194,12 +261,14 @@ public class SLICOrphanPixels extends Algorithm {
 				int labelValue = label.getPixelXYInt(x,y);
 				labels[labelValue]++;
 			}
-		
-		Arrays.sort(labels);
-		for(int l = 0; l < labels.length; l++){
-			System.out.println("number of pixels in label n°"+l+" : "+labels[l]);
-		}
-		System.out.println(smallSuperPixelCounter+ "small superPixels have been detected");
+
+		 */
+
+
+
+
+		System.out.println("size criteria "+sizeCriteria);
+
 
 
 		//Segmentation result
@@ -246,6 +315,10 @@ public class SLICOrphanPixels extends Algorithm {
 			this.x=x;
 			this.y=y;
 		}
+	}
+
+	private class Component{
+		public ArrayList<int[]> listOfCoordinates;
 	}
 
 }
