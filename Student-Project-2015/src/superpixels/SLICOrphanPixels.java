@@ -158,6 +158,7 @@ public class SLICOrphanPixels extends Algorithm {
 						newClusterPixelCount[labelValue]++;
 					}
 				}
+			finalClustersCenters.clear();
 			for(int i=0;i<newClusterCenter.length;i++)
 			{
 				int newX = Math.round(((float) newClusterCenter[i][0])/newClusterPixelCount[i]);
@@ -170,7 +171,7 @@ public class SLICOrphanPixels extends Algorithm {
 				clusters.get(i).a=lab.getPixelXYBDouble(newX, newY, 1);
 				clusters.get(i).b=lab.getPixelXYBDouble(newX, newY, 2);
 
-				int[] coordinates = new int[2];
+				int[] coordinates = new int[3];
 				coordinates[0] = newX;
 				coordinates[1] = newY;
 				finalClustersCenters.add(i,coordinates);
@@ -183,12 +184,15 @@ public class SLICOrphanPixels extends Algorithm {
 
 		System.out.println("now we help the poor OrphanPixels");
 		int sizeCriteria = ((xDim*yDim/clusters.size())/4);
+		System.out.println("size criteria "+sizeCriteria);
 		Connectivity3D con = new FlatConnectivity(label, TrivialConnectivity.getHeightNeighbourhood());
 		IntegerImage labelsMapImage = ConnectedComponentMap.exec(label,con);
 
 		for(int i = 0; i <finalClustersCenters.size();i++ ){
-			System.out.println("x = "+finalClustersCenters.get(i)[0]);
-			System.out.println("y = "+finalClustersCenters.get(i)[1]);
+			finalClustersCenters.get(i)[2] = label.getPixelXYInt(finalClustersCenters.get(i)[0],finalClustersCenters.get(i)[1]);
+			//System.out.println("x = "+finalClustersCenters.get(i)[0]);
+			//System.out.println("y = "+finalClustersCenters.get(i)[1]);
+			//System.out.println("label = "+finalClustersCenters.get(i)[2]);
 		}
 
 
@@ -245,7 +249,7 @@ public class SLICOrphanPixels extends Algorithm {
 		}
 
 
-
+		//we grab all the coordinates for each badLabel
 		for(int i = 0; i < badLabels.size(); i++){
 			for(int y=0;y<yDim;y++)
 				for(int x=0;x<xDim;x++){
@@ -255,29 +259,57 @@ public class SLICOrphanPixels extends Algorithm {
 					}
 				}
 		}
-
 		//we compute the means for each badLabel
 		for(int i = 0; i < badLabels.size(); i++){
 			badLabels.get(i)[1] = (int) badLabels.get(i)[1]/badLabels.get(i)[3];
 			badLabels.get(i)[2] = (int) badLabels.get(i)[2]/badLabels.get(i)[3];
 		}
 
-		//we compute the distance between our small components and the superpixels
+
+
+		//we compute and store the minimal distance between our small components and the superpixels
+		//computationArray[0] : the n° of the badLabel
+		//computationArray[1] : the n° of the best superpixel core for fusion
+		//computationArray[2] : the distance, we need it for computation
+		double[][] computationArray = new double[badLabels.size()][3];
+		for (double[] row : computationArray)
+			Arrays.fill(row,Double.MAX_VALUE);
+
+
 		for(int i = 0; i < badLabels.size(); i++){
 			for(int j = 0; j < finalClustersCenters.size(); j++){
 				double xDiff = badLabels.get(i)[1]-finalClustersCenters.get(j)[0];
 				double yDiff = badLabels.get(i)[2]-finalClustersCenters.get(j)[1];
 				double d = Math.sqrt(xDiff*xDiff+yDiff*yDiff);
+				if( d < computationArray[i][2]){
+					computationArray[i][0] = badLabels.get(i)[0];
+					computationArray[i][1] = j;
+					computationArray[i][2] = d;
+				}
 			}
 		}
-
-
-
-
-
-		//ULTIMATE GOAL HERE
-		//label.setPixelXYInt(x, y, 0);
-		////////////////////////////
+		
+		ArrayList<Integer> badLabelToSuperPixelLabel = new ArrayList<Integer>(labels.length);
+		
+		for(int i = 0 ; i < labels.length; i++){
+			badLabelToSuperPixelLabel.add(i,0);
+		}
+		for(int i = 0 ; i < computationArray.length; i++){
+			badLabelToSuperPixelLabel.set(badLabels.get(i)[0],(int) computationArray[i][1]);
+		}
+		
+		for(int i = 0; i < badLabelToSuperPixelLabel.size(); i++){
+			System.out.println(i+"; "+badLabelToSuperPixelLabel.get(i));
+		}
+		System.out.println("the harsh truth is : "+badLabelToSuperPixelLabel.size());
+		for(int y=0;y<yDim;y++)
+			for(int x=0;x<xDim;x++){
+				for(int i = 0; i < badLabels.size(); i++){
+					if(labelsMapImage.getPixelXYInt(x, y) == badLabels.get(i)[0]){//if the current label is a bad label
+						label.setPixelXYInt(x, y, badLabelToSuperPixelLabel.get(badLabels.get(i)[0]));
+					}
+				}
+			}
 
 
 		/*
@@ -294,7 +326,6 @@ public class SLICOrphanPixels extends Algorithm {
 
 
 
-		System.out.println("size criteria "+sizeCriteria);
 
 
 

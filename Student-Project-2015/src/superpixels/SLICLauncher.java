@@ -14,7 +14,7 @@ public class SLICLauncher {
 		//Image input = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/curious.png");
 		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
 		int numberOfSuperPixels = 500;
-		int m = 40;
+		int m = 20;
 
 
 
