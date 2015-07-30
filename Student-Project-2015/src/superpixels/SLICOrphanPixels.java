@@ -74,7 +74,7 @@ public class SLICOrphanPixels extends Algorithm {
 				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y));
 			}
 
-		final ArrayList<int[]> finalClustersCenters = new ArrayList<int[]>(clusters.size());
+		final ArrayList<int[]> finalSuperpixelsCore = new ArrayList<int[]>(clusters.size());
 
 
 		//Move cluster center to lowest gradient in 3x3 neighbourhood
@@ -158,7 +158,7 @@ public class SLICOrphanPixels extends Algorithm {
 						newClusterPixelCount[labelValue]++;
 					}
 				}
-			finalClustersCenters.clear();
+			finalSuperpixelsCore.clear();
 			for(int i=0;i<newClusterCenter.length;i++)
 			{
 				int newX = Math.round(((float) newClusterCenter[i][0])/newClusterPixelCount[i]);
@@ -174,35 +174,44 @@ public class SLICOrphanPixels extends Algorithm {
 				int[] coordinates = new int[3];
 				coordinates[0] = newX;
 				coordinates[1] = newY;
-				finalClustersCenters.add(i,coordinates);
+				finalSuperpixelsCore.add(i,coordinates);
 
 			}			
 			System.out.println("Loop "+loop+" done ! Residual error : "+error);
 		} while (error!=0);
 
-		///////////////////////////////////////////////////////////////////////
 
-		System.out.println("now we help the poor OrphanPixels");
-		int sizeCriteria = ((xDim*yDim/clusters.size())/4);
-		System.out.println("size criteria "+sizeCriteria);
-		Connectivity3D con = new FlatConnectivity(label, TrivialConnectivity.getHeightNeighbourhood());
+		label = enforceConnectivity(label,finalSuperpixelsCore);
+
+		//Segmentation result
+		superpixels = label;
+
+
+
+	}
+
+	/**
+	 * @param label  the IntegerImage where to enforce connectivity
+	 * @param finalSuperpixelsCore the array with coordinates of the superpixels centers
+	 * @return label the IntegerImage with enforced connectivity
+	 */
+	public IntegerImage enforceConnectivity(IntegerImage label,ArrayList<int[]> finalSuperpixelsCore){
+		
+		System.out.println("We now enforce connectivity");
+		int xDim = inputImage.xdim;
+		int yDim = inputImage.ydim;
+		int sizeCriteria = ((xDim*yDim/finalSuperpixelsCore.size())/4);
+		System.out.println("size criteria = "+sizeCriteria);
+		
+		//we create an IntegerImage to store the informations about connexe components
+		Connectivity3D con = new FlatConnectivity(label, TrivialConnectivity.getFourNeighbourhood());
 		IntegerImage labelsMapImage = ConnectedComponentMap.exec(label,con);
 
-		for(int i = 0; i <finalClustersCenters.size();i++ ){
-			finalClustersCenters.get(i)[2] = label.getPixelXYInt(finalClustersCenters.get(i)[0],finalClustersCenters.get(i)[1]);
-			//System.out.println("x = "+finalClustersCenters.get(i)[0]);
-			//System.out.println("y = "+finalClustersCenters.get(i)[1]);
-			//System.out.println("label = "+finalClustersCenters.get(i)[2]);
-		}
-
-
-
-		//now we adjust the labelsMapImage to suitable labels
+		//we adjust the labelsMapImage to suitable labels
 		HashSet<Integer> distinctComponents = new HashSet<Integer>();
 		ArrayList<Integer> correspondanceList = new ArrayList<Integer>();
 		for(int y=0;y<yDim;y++)
-			for(int x=0;x<xDim;x++)
-			{
+			for(int x=0;x<xDim;x++){
 				int componentLabelValue = labelsMapImage.getPixelXYInt(x,y);
 				if(distinctComponents.add(componentLabelValue)){
 					correspondanceList.add(componentLabelValue);
@@ -211,16 +220,12 @@ public class SLICOrphanPixels extends Algorithm {
 		System.out.println("numbers of connexe components : "+distinctComponents.size());
 		for(int y=0;y<yDim;y++)
 			for(int x=0;x<xDim;x++){
-				for(int l = 0; l<correspondanceList.size(); l++){
-					if(labelsMapImage.getPixelXYInt(x,y) == correspondanceList.get(l)){
-						labelsMapImage.setPixelXYInt(x,y,l);
+				for(int i = 0; i<correspondanceList.size(); i++){
+					if(labelsMapImage.getPixelXYInt(x,y) == correspondanceList.get(i)){
+						labelsMapImage.setPixelXYInt(x,y,i);
 					}
 				}
 			}
-
-
-
-
 
 		//labels store the number of pixels for each connexe component
 		int[] labels = new int[distinctComponents.size()];
@@ -229,112 +234,98 @@ public class SLICOrphanPixels extends Algorithm {
 				int labelValue = labelsMapImage.getPixelXYInt(x,y);
 				labels[labelValue]++;
 			}
-		for(int l = 0; l < labels.length; l++){
-			//System.out.println("number of pixels in connexe component n°"+l+" : "+labels[l]);
-		}
 
-		//badLabels contains only the labels of the small components
+		//orphanLabels contains only the labels of the small components
 		//badLabel[0] contains the label number
 		//badLabel[1] contains the x mean
 		//badLabel[2] contains the y mean
 		//badLabel[3] contains the number of pixels
-		ArrayList<int[]> badLabels = new ArrayList<int[]>();
+		ArrayList<int[]> orphanLabels = new ArrayList<int[]>();
 		for(int i = 0; i < labels.length; i++){
 			if(labels[i] < sizeCriteria){
 				int[] badLabel = new int[4];
 				badLabel[0] = i;
 				badLabel[3] = labels[i];
-				badLabels.add(badLabel);
+				orphanLabels.add(badLabel);
 			}
 		}
 
-
-		//we grab all the coordinates for each badLabel
-		for(int i = 0; i < badLabels.size(); i++){
+		//we grab all the coordinates for each badLabel, and then compute the means
+		for(int i = 0; i < orphanLabels.size(); i++){
 			for(int y=0;y<yDim;y++)
 				for(int x=0;x<xDim;x++){
-					if(labelsMapImage.getPixelXYInt(x, y) == badLabels.get(i)[0]){
-						badLabels.get(i)[1] += x;
-						badLabels.get(i)[2] += y;
+					if(labelsMapImage.getPixelXYInt(x, y) == orphanLabels.get(i)[0]){
+						orphanLabels.get(i)[1] += x;
+						orphanLabels.get(i)[2] += y;
 					}
 				}
 		}
-		//we compute the means for each badLabel
-		for(int i = 0; i < badLabels.size(); i++){
-			badLabels.get(i)[1] = (int) badLabels.get(i)[1]/badLabels.get(i)[3];
-			badLabels.get(i)[2] = (int) badLabels.get(i)[2]/badLabels.get(i)[3];
+		for(int i = 0; i < orphanLabels.size(); i++){
+			orphanLabels.get(i)[1] = (int) orphanLabels.get(i)[1]/orphanLabels.get(i)[3];
+			orphanLabels.get(i)[2] = (int) orphanLabels.get(i)[2]/orphanLabels.get(i)[3];
 		}
 
-
-
-		//we compute and store the minimal distance between our small components and the superpixels
+		
+		//we compute the minimal distance between our small components and the superpixels
 		//computationArray[0] : the n° of the badLabel
 		//computationArray[1] : the n° of the best superpixel core for fusion
-		//computationArray[2] : the distance, we need it for computation
-		double[][] computationArray = new double[badLabels.size()][3];
+		//computationArray[2] : the distance, we need it only for computation
+		double[][] computationArray = new double[orphanLabels.size()][3];
 		for (double[] row : computationArray)
 			Arrays.fill(row,Double.MAX_VALUE);
-
-
-		for(int i = 0; i < badLabels.size(); i++){
-			for(int j = 0; j < finalClustersCenters.size(); j++){
-				double xDiff = badLabels.get(i)[1]-finalClustersCenters.get(j)[0];
-				double yDiff = badLabels.get(i)[2]-finalClustersCenters.get(j)[1];
+		for(int i = 0; i < orphanLabels.size(); i++){
+			for(int j = 0; j < finalSuperpixelsCore.size(); j++){
+				double xDiff = orphanLabels.get(i)[1]-finalSuperpixelsCore.get(j)[0];
+				double yDiff = orphanLabels.get(i)[2]-finalSuperpixelsCore.get(j)[1];
 				double d = Math.sqrt(xDiff*xDiff+yDiff*yDiff);
 				if( d < computationArray[i][2]){
-					computationArray[i][0] = badLabels.get(i)[0];
+					computationArray[i][0] = orphanLabels.get(i)[0];
 					computationArray[i][1] = j;
 					computationArray[i][2] = d;
 				}
 			}
 		}
-		
-		ArrayList<Integer> badLabelToSuperPixelLabel = new ArrayList<Integer>(labels.length);
-		
+
+		//orphanLabelsToSuperPixelLabel is here to have a direct mapping between orphanLabels and their legitimate belonging superpixel
+		ArrayList<Integer> orphanLabelsToSuperPixelLabel = new ArrayList<Integer>(labels.length);
 		for(int i = 0 ; i < labels.length; i++){
-			badLabelToSuperPixelLabel.add(i,0);
+			orphanLabelsToSuperPixelLabel.add(i,0);
 		}
 		for(int i = 0 ; i < computationArray.length; i++){
-			badLabelToSuperPixelLabel.set(badLabels.get(i)[0],(int) computationArray[i][1]);
+			orphanLabelsToSuperPixelLabel.set(orphanLabels.get(i)[0],(int) computationArray[i][1]);
 		}
 		
-		for(int i = 0; i < badLabelToSuperPixelLabel.size(); i++){
-			System.out.println(i+"; "+badLabelToSuperPixelLabel.get(i));
+		
+		//we grab the label of each superpixel core
+		for(int i = 0; i <finalSuperpixelsCore.size();i++ ){
+			finalSuperpixelsCore.get(i)[2] = label.getPixelXYInt(finalSuperpixelsCore.get(i)[0],finalSuperpixelsCore.get(i)[1]);
 		}
-		System.out.println("the harsh truth is : "+badLabelToSuperPixelLabel.size());
+		
+		
+		//here it is, for each pixel of the IntegerImage label, we change the label if needed
 		for(int y=0;y<yDim;y++)
 			for(int x=0;x<xDim;x++){
-				for(int i = 0; i < badLabels.size(); i++){
-					if(labelsMapImage.getPixelXYInt(x, y) == badLabels.get(i)[0]){//if the current label is a bad label
-						label.setPixelXYInt(x, y, badLabelToSuperPixelLabel.get(badLabels.get(i)[0]));
+				for(int i = 0; i < orphanLabels.size(); i++){
+					if(labelsMapImage.getPixelXYInt(x, y) == orphanLabels.get(i)[0]){//if the current label is a bad label
+						label.setPixelXYInt(x, y, orphanLabelsToSuperPixelLabel.get(orphanLabels.get(i)[0]));
 					}
 				}
 			}
 
-
-		/*
-		//now we have a new look on labels
-		for(int y=0;y<yDim;y++)
-			for(int x=0;x<xDim;x++){
-				i++;
-				int labelValue = label.getPixelXYInt(x,y);
-				labels[labelValue]++;
-			}
-
-		 */
-
-
-
-
-
-
-
-		//Segmentation result
-		superpixels = label;
-
-
-
+		return label;
 	}
+
+
+
+
+
+
+
+
+
+
+
+
 
 	/**
 	 * @param inputImage  image to compute
