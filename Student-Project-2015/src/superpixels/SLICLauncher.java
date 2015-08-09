@@ -13,7 +13,7 @@ public class SLICLauncher {
 
 		//Image input = ImageLoader.exec("/home/weber/Documents/git/pelican/samples/curious.png");
 		Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
-		int numberOfSuperPixels = 800;
+		int numberOfSuperPixels = 100;
 		int m = 20;
 		boolean fuseSuperpixels = false;
 		double start;
@@ -21,7 +21,7 @@ public class SLICLauncher {
 
 		//SLIC (m parameter to tune)
 		start = System.currentTimeMillis();
-		Image outputSLIC = SLIC.exec(input, numberOfSuperPixels,m,fuseSuperpixels);
+		Image outputSLIC = SLIC.exec(input, 1000,m,fuseSuperpixels);
 		end = System.currentTimeMillis();
 		double executionTimeSLIC = end - start;
 		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(outputSLIC)),"SLIC : "+numberOfSuperPixels+" superpixels, m = "+m);
@@ -37,7 +37,7 @@ public class SLICLauncher {
 
 		//ASLIC (no parameter to tune)
 		start = System.currentTimeMillis();
-		Image outputASLIC = ASLIC.exec(input, numberOfSuperPixels,true);
+		Image outputASLIC = ASLIC.exec(input, numberOfSuperPixels,fuseSuperpixels);
 		end = System.currentTimeMillis();
 		double executionTimeASLIC = end - start;
 		Viewer2D.exec(DrawFrontiersOnImage.exec(input, FrontiersFromSegmentation.exec(outputASLIC)),"ASLIC : "+numberOfSuperPixels+" superpixels");
