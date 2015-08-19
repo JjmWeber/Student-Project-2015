@@ -3,8 +3,6 @@ package superpixels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.DoubleImage;
 import fr.unistra.pelican.Image;
@@ -15,26 +13,27 @@ import fr.unistra.pelican.algorithms.morphology.vectorial.gradient.Multispectral
 import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
 
 /**
- * Implementation of SLICOWithPostProcess superpixels (SLIC without parameter)
+ * Implementation of ASLIC superpixels (SLIC without parameter)
  * 
  * Radhakrishna Achanta, Appu Shaji, Kevin Smith, Aurelien Lucchi, Pascal Fua, and Sabine SÃ¼sstrunk,
- *  SLICOWithPostProcess Superpixels Compared to State-of-the-art Superpixel Methods, 
+ *  ASLIC Superpixels Compared to State-of-the-art Superpixel Methods, 
  * IEEE Transactions on Pattern Analysis and Machine Intelligence, vol. 34, num. 11, p. 2274 - 2282, May 2012.
  * 
  * @author Jonathan Weber
  */
 
-public class SLICOWithPostProcess extends Algorithm {
+public class ASLIC extends AbstractSLIC {
 
 	public Image inputImage;
 	public int numberOfSuperpixels;
+	public boolean fuseSuperpixels;
 
 	public IntegerImage superpixels;
 
-	public SLICOWithPostProcess()
+	public ASLIC()
 	{
 		super();
-		super.inputs="inputImage,numberOfSuperpixels";
+		super.inputs="inputImage,numberOfSuperpixels,fuseSuperpixels";
 		super.outputs = "superpixels";
 	}
 
@@ -58,9 +57,10 @@ public class SLICOWithPostProcess extends Algorithm {
 		for(int y=step/2;y<yDim;y+=step)
 			for(int x=step/2;x<xDim;x+=step)
 			{
-				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y,20));
+				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y,20,10));
 			}
 
+		final ArrayList<int[]> finalSuperpixelsCore = new ArrayList<int[]>(clusters.size());
 		//Move cluster center to lowest gradient in 3x3 neighbourhood
 		for(Cluster c : clusters)
 		{
@@ -107,7 +107,6 @@ public class SLICOWithPostProcess extends Algorithm {
 				int yMax=Math.min(yDim-1, c.y+step);
 				int xMin=Math.max(0, c.x-step);
 				int xMax=Math.min(xDim-1, c.x+step);
-				double maxMc = 0;
 				for(int y=yMin;y<=yMax;y++)
 					for(int x=xMin;x<=xMax;x++)
 					{
@@ -116,18 +115,13 @@ public class SLICOWithPostProcess extends Algorithm {
 						double b=lab.getPixelXYBDouble(x,y,2);
 						double dc=Math.sqrt((l-c.l)*(l-c.l)+(a-c.a)*(a-c.a)+(b-c.b)*(b-c.b));
 						double ds=Math.sqrt((x-c.x)*(x-c.x)+(y-c.y)*(y-c.y));
-						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/step)*(ds/step)));
-						if(dc > maxMc){
-							maxMc = dc;
-						}
-
+						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/c.ms)*(ds/c.ms)));
 						if(d<distance.getPixelXYDouble(x, y))
 						{
 							distance.setPixelXYDouble(x,y,d);
 							label.setPixelXYInt(x, y, k);
 						}
 					}
-				c.mc = maxMc;
 			}
 			// Cluster center update and error computation
 			error=0;
@@ -150,6 +144,7 @@ public class SLICOWithPostProcess extends Algorithm {
 						newClusterPixelCount[labelValue]++;
 					}
 				}
+			finalSuperpixelsCore.clear();
 			for(int i=0;i<newClusterCenter.length;i++)
 			{
 				int newX = Math.round(((float) newClusterCenter[i][0])/newClusterPixelCount[i]);
@@ -161,71 +156,67 @@ public class SLICOWithPostProcess extends Algorithm {
 				clusters.get(i).l=lab.getPixelXYBDouble(newX, newY, 0);
 				clusters.get(i).a=lab.getPixelXYBDouble(newX, newY, 1);
 				clusters.get(i).b=lab.getPixelXYBDouble(newX, newY, 2);
-			}			
+				
+				int[] coordinates = new int[3];
+				coordinates[0] = newX;
+				coordinates[1] = newY;
+				finalSuperpixelsCore.add(i,coordinates);
+			}
+
+			//now that we have our new centers, we compute the maximal color distance mc and spatial distance ms for each center
+			for(int y=0;y<yDim;y++)
+				for(int x=0;x<xDim;x++)
+				{
+					int labelValue = label.getPixelXYInt(x,y);
+					if(labelValue!=-1)
+					{
+						double l=lab.getPixelXYBDouble(x,y,0);
+						double a=lab.getPixelXYBDouble(x,y,1);
+						double b=lab.getPixelXYBDouble(x,y,2);
+						Cluster c = clusters.get(labelValue);
+						double newDs = Math.sqrt((x-c.x)*(x-c.x)+(y-c.y)*(y-c.y));
+						double newDc = Math.sqrt((l-c.l)*(l-c.l)+(a-c.a)*(a-c.a)+(b-c.b)*(b-c.b));
+						if( newDc > c.mc){
+							c.mc = newDc;
+						}
+						if( newDs > c.ms){
+							c.ms = newDs;
+						}
+					}
+				}
+
 			System.out.println("Loop "+loop+" done ! Residual error : "+error);
 		} while (error!=0);
 
-
-
-
-		double [] superPixelValue = new double [clusters.size()];
-		Arrays.fill(superPixelValue,0);
-		for(int y=0;y<yDim;y++)
-			for(int x=0;x<xDim;x++)
-			{
-				superPixelValue[label.getPixelXYInt(x, y)] += lab.getPixelXYBDouble(x, y, 0);
-				//System.out.println("("+x+";"+y+") : "+label.getPixelXYInt(x, y));
-
-			}
-
-
-
-		//	for(int i = 0; i < superPixelValue.length; i++){
-		//		System.out.println(i +"; "+superPixelValue[i]);
-		//	}
-
-		for(int i = 1; i < superPixelValue.length; i++){
-			if(Math.abs(superPixelValue[i]/superPixelValue[i-1]-1) < 0.05  ){
-				//System.out.println("hyper-digi-fusion n° "+i);
-				//double bow = Math.abs(superPixelValue[i]/superPixelValue[i-1]-1);
-				//System.out.println(bow);
-				for(int j = 0; j < label.size(); j++){
-					label.setPixelInt(j,i);
-				}
-			}
-		}
-		
-		
-		for(int y=0;y<yDim;y++)
-			for(int x=0;x<xDim;x++){
-			System.out.println(label.getPixelXYInt(x, y));
-		}
-		
-
+		label = enforceConnectivity(label,finalSuperpixelsCore);
+		if(fuseSuperpixels)
+		label = fuse(label,lab,finalSuperpixelsCore,9,5,step);
 		//Segmentation result
+		
 		superpixels = label;
 
 	}
 
+
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
-	 * @return  SLICOWithPostProcess superpixels image
+	 * @return  ASLIC superpixels image
 	 */
 	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels)
 	{
-		return (IntegerImage) new SLICOWithPostProcess().process(inputImage, numberOfSuperpixels);
+		return (IntegerImage) new ASLIC().process(inputImage, numberOfSuperpixels);
 	}
 
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
 	 * @param m compactness parameter
-	 * @return  SLICOWithPostProcess superpixels image
+	 * @return  ASLIC superpixels image
 	 */
-	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double m)
+	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, boolean fuseSuperpixels)
 	{
-		return (IntegerImage) new SLICOWithPostProcess().process(inputImage, numberOfSuperpixels,m);
+		return (IntegerImage) new ASLIC().process(inputImage, numberOfSuperpixels,fuseSuperpixels);
 	}
 
 	private class Cluster
@@ -236,8 +227,9 @@ public class SLICOWithPostProcess extends Algorithm {
 		public int x;
 		public int y;
 		public double mc;
+		public double ms;
 
-		public Cluster(double l, double a, double b, int x, int y, int mc)
+		public Cluster(double l, double a, double b, int x, int y, int mc, int ms)
 		{
 			this.l=l;
 			this.a=a;
@@ -245,6 +237,7 @@ public class SLICOWithPostProcess extends Algorithm {
 			this.x=x;
 			this.y=y;
 			this.mc=mc;
+			this.ms=ms;
 		}
 	}
 

@@ -3,8 +3,6 @@ package superpixels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.DoubleImage;
 import fr.unistra.pelican.Image;
@@ -24,17 +22,19 @@ import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
  * @author Jonathan Weber
  */
 
-public class SLICO extends Algorithm {
+public class SLICO extends AbstractSLIC {
 
 	public Image inputImage;
 	public int numberOfSuperpixels;
+	public boolean fuseSuperpixels;
+
 
 	public IntegerImage superpixels;
 
 	public SLICO()
 	{
 		super();
-		super.inputs="inputImage,numberOfSuperpixels";
+		super.inputs="inputImage,numberOfSuperpixels,fuseSuperpixels";
 		super.outputs = "superpixels";
 	}
 
@@ -60,7 +60,7 @@ public class SLICO extends Algorithm {
 			{
 				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y,20));
 			}
-
+		final ArrayList<int[]> finalSuperpixelsCore = new ArrayList<int[]>(clusters.size());
 		//Move cluster center to lowest gradient in 3x3 neighbourhood
 		for(Cluster c : clusters)
 		{
@@ -107,7 +107,6 @@ public class SLICO extends Algorithm {
 				int yMax=Math.min(yDim-1, c.y+step);
 				int xMin=Math.max(0, c.x-step);
 				int xMax=Math.min(xDim-1, c.x+step);
-				double maxMc = 0;
 				for(int y=yMin;y<=yMax;y++)
 					for(int x=xMin;x<=xMax;x++)
 					{
@@ -116,10 +115,7 @@ public class SLICO extends Algorithm {
 						double b=lab.getPixelXYBDouble(x,y,2);
 						double dc=Math.sqrt((l-c.l)*(l-c.l)+(a-c.a)*(a-c.a)+(b-c.b)*(b-c.b));
 						double ds=Math.sqrt((x-c.x)*(x-c.x)+(y-c.y)*(y-c.y));
-						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/step)*(ds/step)));   //TODO FORMULE PAS BONNE
-						if(dc > maxMc){    //TODO pas ici qu'il faut calculer mc
-							maxMc = dc;
-						}
+						double d = Math.sqrt((dc/c.mc)*(dc/c.mc)+((ds/step)*(ds/step)));
 
 						if(d<distance.getPixelXYDouble(x, y))
 						{
@@ -127,7 +123,6 @@ public class SLICO extends Algorithm {
 							label.setPixelXYInt(x, y, k);
 						}
 					}
-				c.mc = maxMc;
 			}
 			// Cluster center update and error computation
 			error=0;
@@ -150,6 +145,7 @@ public class SLICO extends Algorithm {
 						newClusterPixelCount[labelValue]++;
 					}
 				}
+			finalSuperpixelsCore.clear();
 			for(int i=0;i<newClusterCenter.length;i++)
 			{
 				int newX = Math.round(((float) newClusterCenter[i][0])/newClusterPixelCount[i]);
@@ -161,17 +157,44 @@ public class SLICO extends Algorithm {
 				clusters.get(i).l=lab.getPixelXYBDouble(newX, newY, 0);
 				clusters.get(i).a=lab.getPixelXYBDouble(newX, newY, 1);
 				clusters.get(i).b=lab.getPixelXYBDouble(newX, newY, 2);
+
+				int[] coordinates = new int[3];
+				coordinates[0] = newX;
+				coordinates[1] = newY;
+				finalSuperpixelsCore.add(i,coordinates);
 			}
-			
-			//TODO calculer mc et ms pour chaque cluster ici !
-			
+
+			//now that we have our new centers, we compute the maximal color distance mc for each center
+
+			for(int y=0;y<yDim;y++)
+				for(int x=0;x<xDim;x++)
+				{
+					int labelValue = label.getPixelXYInt(x,y);
+					if(labelValue!=-1)
+					{
+						double l=lab.getPixelXYBDouble(x,y,0);
+						double a=lab.getPixelXYBDouble(x,y,1);
+						double b=lab.getPixelXYBDouble(x,y,2);
+						Cluster c = clusters.get(labelValue);
+						double newDc = Math.sqrt((l-c.l)*(l-c.l)+(a-c.a)*(a-c.a)+(b-c.b)*(b-c.b));
+						if( newDc > c.mc){
+							c.mc = newDc;
+						}
+					}
+				}
+
+
 			System.out.println("Loop "+loop+" done ! Residual error : "+error);
 		} while (error!=0);
 
+		label = enforceConnectivity(label,finalSuperpixelsCore);
+		if(fuseSuperpixels)
+		label = fuse(label,lab,finalSuperpixelsCore,9,5,step);
 		//Segmentation result
 		superpixels = label;
 
 	}
+
 
 	/**
 	 * @param inputImage  image to compute
@@ -189,9 +212,9 @@ public class SLICO extends Algorithm {
 	 * @param m compactness parameter
 	 * @return  SLICO superpixels image
 	 */
-	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double m)
+	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, boolean fuseSuperpixels)
 	{
-		return (IntegerImage) new SLICO().process(inputImage, numberOfSuperpixels,m);
+		return (IntegerImage) new SLICO().process(inputImage, numberOfSuperpixels,fuseSuperpixels);
 	}
 
 	private class Cluster
@@ -213,5 +236,4 @@ public class SLICO extends Algorithm {
 			this.mc=mc;
 		}
 	}
-
 }

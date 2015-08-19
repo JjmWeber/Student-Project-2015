@@ -3,8 +3,6 @@ package superpixels;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.DoubleImage;
 import fr.unistra.pelican.Image;
@@ -24,21 +22,22 @@ import fr.unistra.pelican.util.morphology.FlatStructuringElement2D;
  * @author Jonathan Weber
  */
 
-public class SLIC extends Algorithm {
-	
+public class SLIC extends AbstractSLIC {
+
 	public Image inputImage;
 	public int numberOfSuperpixels;
-	
+	public boolean fuseSuperpixels;
+
+
 	//Between 1 and 40, low value to respect boundary, high value to respect compactness
-	public double m=10;
-	
+	public double m;
+
 	public IntegerImage superpixels;
-	
+
 	public SLIC()
 	{
 		super();
-		super.inputs="inputImage,numberOfSuperpixels";
-		super.options="m";
+		super.inputs="inputImage,numberOfSuperpixels,m,fuseSuperpixels";
 		super.outputs = "superpixels";
 	}
 
@@ -46,17 +45,17 @@ public class SLIC extends Algorithm {
 	public void launch() throws AlgorithmException {
 		int xDim = inputImage.xdim;
 		int yDim = inputImage.ydim;
-		
-		
+
+
 		// Convert image to Lab color space
 		Image lab = XYZToLAB.exec(RGBToXYZ.exec(inputImage));
-		
+
 		// Perform gradient on RGB image
 		Image gradient = MultispectralEuclideanGradient.exec(inputImage, FlatStructuringElement2D.createSquareFlatStructuringElement(3));
-		
+
 		//Compute step value
 		int step = (int) Math.round(Math.sqrt(((double)gradient.size())/numberOfSuperpixels));
-		
+
 		//Initiate cluster
 		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 		for(int y=step/2;y<yDim;y+=step)
@@ -64,7 +63,10 @@ public class SLIC extends Algorithm {
 			{
 				clusters.add(new Cluster(lab.getPixelXYBDouble(x, y, 0),lab.getPixelXYBDouble(x, y, 1),lab.getPixelXYBDouble(x, y, 2),x,y));
 			}
-		
+
+		final ArrayList<int[]> finalSuperpixelsCore = new ArrayList<int[]>(clusters.size());
+
+
 		//Move cluster center to lowest gradient in 3x3 neighbourhood
 		for(Cluster c : clusters)
 		{
@@ -87,20 +89,20 @@ public class SLIC extends Algorithm {
 			c.a=lab.getPixelXYBDouble(bestX, bestY, 1);
 			c.b=lab.getPixelXYBDouble(bestX, bestY, 2);
 		}
-		
+
 		// initialize label and distance image
 		IntegerImage label = new IntegerImage(xDim,yDim,1,1,1);
 		label.fill(-1);
 		DoubleImage distance = new DoubleImage(xDim,yDim,1,1,1);
 		distance.fill(Double.MAX_VALUE);
-		
+
 		double error=0;
 		int loop=0;
 		do
 		{			
 			loop++;
 			System.out.println("Loop "+loop+" started !");
-			
+
 			// Pixel assignment to cluster
 			for(int k=0;k<clusters.size();k++)
 			{
@@ -146,26 +148,41 @@ public class SLIC extends Algorithm {
 						newClusterPixelCount[labelValue]++;
 					}
 				}
+			finalSuperpixelsCore.clear();
 			for(int i=0;i<newClusterCenter.length;i++)
 			{
 				int newX = Math.round(((float) newClusterCenter[i][0])/newClusterPixelCount[i]);
 				int newY = Math.round(((float) newClusterCenter[i][1])/newClusterPixelCount[i]);
-				
+
 				error+=Math.sqrt((newX-clusters.get(i).x)*(newX-clusters.get(i).x)+(newY-clusters.get(i).y)*(newY-clusters.get(i).y));
 				clusters.get(i).x=newX;
 				clusters.get(i).y=newY;
 				clusters.get(i).l=lab.getPixelXYBDouble(newX, newY, 0);
 				clusters.get(i).a=lab.getPixelXYBDouble(newX, newY, 1);
 				clusters.get(i).b=lab.getPixelXYBDouble(newX, newY, 2);
+
+				int[] coordinates = new int[3];
+				coordinates[0] = newX;
+				coordinates[1] = newY;
+				finalSuperpixelsCore.add(i,coordinates);
+
 			}			
 			System.out.println("Loop "+loop+" done ! Residual error : "+error);
 		} while (error!=0);
-		
+
+
+		label = enforceConnectivity(label,finalSuperpixelsCore);
+		if(fuseSuperpixels)
+		label = fuse(label,lab,finalSuperpixelsCore,9,5,step);
+
 		//Segmentation result
 		superpixels = label;
 
+
+
 	}
-	
+
+
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
@@ -175,16 +192,16 @@ public class SLIC extends Algorithm {
 	{
 		return (IntegerImage) new SLIC().process(inputImage, numberOfSuperpixels);
 	}
-	
+
 	/**
 	 * @param inputImage  image to compute
 	 * @param numberOfSuperpixels desired number of superpixels
 	 * @param m compactness parameter
 	 * @return  SLIC superpixels image
 	 */
-	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double m)
+	public static IntegerImage exec(Image inputImage, int numberOfSuperpixels, double m,boolean fuseSuperpixels)
 	{
-		return (IntegerImage) new SLIC().process(inputImage, numberOfSuperpixels,m);
+		return (IntegerImage) new SLIC().process(inputImage, numberOfSuperpixels,m,fuseSuperpixels);
 	}
 
 	private class Cluster
@@ -194,7 +211,7 @@ public class SLIC extends Algorithm {
 		public double b;
 		public int x;
 		public int y;
-		
+
 		public Cluster(double l, double a, double b, int x, int y)
 		{
 			this.l=l;
@@ -204,5 +221,4 @@ public class SLIC extends Algorithm {
 			this.y=y;
 		}
 	}
-	
 }
