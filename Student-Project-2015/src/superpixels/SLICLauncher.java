@@ -15,7 +15,7 @@ public class SLICLauncher {
 		//Image input = ImageLoader.exec("C:/Users/Thomas/git/pelican/samples/curious.png");
 		int numberOfSuperPixels = 500;
 
-		int m = 20;
+		int m = 50;
 		boolean fuseSuperpixels = false;
 		double start;
 		double end;
